@@ -2,6 +2,8 @@
 
 This project provides PowerShell scripts that can be used to extend TFS Build Workflows.
 
+Check the [wiki](https://github.com/CodeblackNL/TFSBuildScripts/wiki) for more information about the scripts, the module and it's functions as well as the status and roadmap of this project. 
+
 ## TFS Build
 
 With TFS 2013, the default build workflow changed. The workflow itself, the structure of activities, has almost been reduced to pretty much a simple sequence. Instead of stitching everything together with huge amounts of activities, only a few activities are used that do all the same work under the covers.
