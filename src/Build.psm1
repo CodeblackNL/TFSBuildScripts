@@ -216,7 +216,7 @@ function Update-Version {
         $version = $version -creplace '\.DD', ".$($now.Day)"
         $version = $version -creplace 'DD', ('{0:00}' -f $now.Day)
         $version = $version -creplace 'D', $now.Day
-        $version = $version -creplace 'J', "$($now.ToString("yy"))$($now.DayOfYear)"
+        $version = $version -creplace 'J', "$($now.ToString("yy"))$('{0:000}' -f [int]$now.DayOfYear)"
         if (-not $version.Contains("+")) {
             $version = $version -creplace '\.BB', ".$Rev"
         }
