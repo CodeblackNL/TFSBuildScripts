@@ -208,20 +208,20 @@ function Update-Version {
             $Rev = 0
         }
 
-        $version = $version -replace 'YYYY', $now.Year
-        $version = $version -replace 'YY', $now.ToString("yy")
-        $version = $version -replace '\.MM', ".$($now.Month)"
-        $version = $version -replace 'MM', ('{0:00}' -f $now.Month)
-        $version = $version -replace 'M', $now.Month
-        $version = $version -replace '\.DD', ".$($now.Day)"
-        $version = $version -replace 'DD', ('{0:00}' -f $now.Day)
-        $version = $version -replace 'D', $now.Day
-        $version = $version -replace 'J', "$($now.ToString("yy"))$($now.DayOfYear)"
+        $version = $version -creplace 'YYYY', $now.Year
+        $version = $version -creplace 'YY', $now.ToString("yy")
+        $version = $version -creplace '\.MM', ".$($now.Month)"
+        $version = $version -creplace 'MM', ('{0:00}' -f $now.Month)
+        $version = $version -creplace 'M', $now.Month
+        $version = $version -creplace '\.DD', ".$($now.Day)"
+        $version = $version -creplace 'DD', ('{0:00}' -f $now.Day)
+        $version = $version -creplace 'D', $now.Day
+        $version = $version -creplace 'J', "$($now.ToString("yy"))$($now.DayOfYear)"
         if (-not $version.Contains("+")) {
-            $version = $version -replace '\.BB', ".$Rev"
+            $version = $version -creplace '\.BB', ".$Rev"
         }
-        $version = $version -replace 'BB', ('{0:00}' -f [int]$Rev)
-        $version = $version -replace 'B', $Rev
+        $version = $version -creplace 'BB', ('{0:00}' -f [int]$Rev)
+        $version = $version -creplace 'B', $Rev
 
         return $version
     }
