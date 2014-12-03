@@ -1,3 +1,6 @@
+##-----------------------------------------------------------------------
+## <copyright file="Build.psm1">(c) https://github.com/CodeblackNL/TFSBuildScripts. See https://github.com/CodeblackNL/TFSBuildScripts/blob/master/LICENSE. </copyright>
+##-----------------------------------------------------------------------
 <#
 .SYNOPSIS
     Module containing common functions for use in TFS builds.

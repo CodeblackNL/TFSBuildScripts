@@ -1,3 +1,7 @@
+##-----------------------------------------------------------------------
+## <copyright file="Get-EnvironmentVariable.Tests.ps1">(c) https://github.com/CodeblackNL/TFSBuildScripts. See https://github.com/CodeblackNL/TFSBuildScripts/blob/master/LICENSE. </copyright>
+##-----------------------------------------------------------------------
+
 Remove-Module "Build" -ErrorAction SilentlyContinue
 Import-Module "$PSScriptRoot\..\src\Build.psm1"
 

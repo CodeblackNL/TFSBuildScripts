@@ -1,4 +1,8 @@
-﻿# ensure chocolatey is installed
+﻿##-----------------------------------------------------------------------
+## <copyright file="Setup.ps1">(c) https://github.com/CodeblackNL/TFSBuildScripts. See https://github.com/CodeblackNL/TFSBuildScripts/blob/master/LICENSE. </copyright>
+##-----------------------------------------------------------------------
+
+# ensure chocolatey is installed
 if(-not $env:ChocolateyInstall -or -not (Test-Path "$env:ChocolateyInstall")){
   iex ((new-object net.webclient).DownloadString("https://chocolatey.org/install.ps1"))
 } else {

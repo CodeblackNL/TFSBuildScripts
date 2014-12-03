@@ -1,5 +1,5 @@
 ##-----------------------------------------------------------------------
-## <copyright file="PreBuild.ps1">(c) Codeblack. All rights reserved.</copyright>
+## <copyright file="PreBuild.ps1">(c) https://github.com/CodeblackNL/TFSBuildScripts. See https://github.com/CodeblackNL/TFSBuildScripts/blob/master/LICENSE. </copyright>
 ##-----------------------------------------------------------------------
 <#
 .SYNOPSIS

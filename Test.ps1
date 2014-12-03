@@ -1,4 +1,8 @@
-﻿$scriptPath = $PSScriptRoot
+﻿##-----------------------------------------------------------------------
+## <copyright file="Test.ps1">(c) https://github.com/CodeblackNL/TFSBuildScripts. See https://github.com/CodeblackNL/TFSBuildScripts/blob/master/LICENSE. </copyright>
+##-----------------------------------------------------------------------
+
+$scriptPath = $PSScriptRoot
 
 # determine if current user is administrator
 $identity  = [System.Security.Principal.WindowsIdentity]::GetCurrent()

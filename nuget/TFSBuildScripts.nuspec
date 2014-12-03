@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>TFSBuildScripts</id>
+    <version>1.0.0-rc2</version>
+    <authors>Jeroen Swart</authors>
+    <owners>Jeroen Swart</owners>
+    <projectUrl>https://github.com/CodeblackNL/TFSBuildScripts</projectUrl>
+    <licenseUrl>https://github.com/CodeblackNL/TFSBuildScripts/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>TFSBuildScripts provides PowerShell scripts that can be used to extend TFS Build Workflows.</description>
+    <releaseNotes>https://github.com/CodeblackNL/TFSBuildScripts/wiki/Changelog</releaseNotes>
+    <copyright>Copyright 2014</copyright>
+    <tags>TFS TFS2013 Build PowerShell</tags>
+  </metadata>
+  <files>
+    <file src="\tools\**\*.*" target="tools" /> 
+    <file src="..\src\Build.psm1" target="tools\Build.psm1" /> 
+    <file src="..\src\PreBuild.ps1" target="tools\PreBuild.ps1" /> 
+  </files>
+</package>
