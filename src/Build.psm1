@@ -10,6 +10,7 @@
     Author: Jeroen Swart
     Versions:
     - 1.0.0  11-11-2014  Initial version; includes Update-Version
+	- 1.1.0  05-12-2014  Added Invoke-SonarRunner & Remove-BOM
 #>
 
 set-alias ?: Invoke-Ternary -Option AllScope -Description "PSCX filter alias"
@@ -64,7 +65,7 @@ function Update-Version {
 
     .PARAMETER  SourcesDirectory
         Specifies the root-directory containing the source-files.
-    .PARAMETER  $AssemblyVersionFilePattern
+    .PARAMETER  AssemblyVersionFilePattern
         Specifies the pattern to use for finding source-files containing the version-attributes. Default is 'AssemblyInfo.*'.
     .PARAMETER  BuildNumber
         Specifies the build-number from which to take the version-number, if available.
@@ -349,5 +350,120 @@ function Update-Version {
     }
     else {
         Write-Warning "No files found."
+    }
+}
+
+function Remove-BOM {
+<#
+    .SYNOPSIS
+        Removes the BOM (Byte Order Mark) from the specified files.
+    .DESCRIPTION
+        Removes the BOM (Byte Order Mark) from the specified files.
+
+    .PARAMETER  Directory
+        Specifies the directory in which to look for files.
+    .PARAMETER  SearchPattern
+        Specifies the pattern to use when looking for files. Default is '"*.cs","*.vb"'.
+    .PARAMETER  WhatIf
+        Specifies that no changes should be made.
+#>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Directory,
+        [Parameter(Mandatory = $false)]
+        [string[]]$SearchPattern = @("*.cs","*.vb"),
+        [Parameter(Mandatory = $false)]
+        [switch]$WhatIf = $false
+    )
+
+	$files = Get-ChildItem $Directory -Include $SearchPattern -Recurse
+	foreach ($file in $files) {
+		Write-Verbose "Removing BOM from '$($file.FullName)'."
+		if (-not $WhatIf) {
+			Set-ItemProperty $file.FullName -name IsReadOnly -value $false
+
+			$content = Get-Content $file.FullName
+			[System.IO.File]::WriteAllLines($file.FullName, $content)
+		}
+	}
+}
+
+function Invoke-SonarRunner {
+<#
+    .SYNOPSIS
+        Runs the sonar analysis.
+    .DESCRIPTION
+        Runs the sonar analysis.
+
+    .PARAMETER  $SourcesDirectory
+        Specifies the root-directory containing the source-files.
+    .PARAMETER  SonarRunnerBinDirectory
+        Specifies the directory containing the sonar-runner binaries. Default is 'C:\sonar\bin'.
+    .PARAMETER  SonarPropertiesFileName
+        Specifies the file-name of the sonar-properties file. Default is 'sonar-project.properties'.
+    .PARAMETER  WhatIf
+        Specifies that no changes should be made.
+#>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$SourcesDirectory,
+        [Parameter(Mandatory = $false)]
+        [string]$SonarRunnerBinDirectory,
+        [Parameter(Mandatory = $false)]
+        [string]$SonarPropertiesFileName,
+        [Parameter(Mandatory = $false)]
+        [switch]$WhatIf = $false
+    )
+
+    if (-not $SonarRunnerBinDirectory) {
+        $SonarRunnerBinDirectory = "C:\sonar\bin"
+        Write-Verbose "SonarRunnerBinFolder not provided, using default '$SonarRunnerBinDirectory'"
+    }
+
+    if (-not $SonarPropertiesFileName) {
+        $SonarPropertiesFileName = "sonar-project.properties"
+        Write-Verbose "SonarPropertiesFileName not provided, using default '$SonarPropertiesFileName'"
+    }
+
+    $SonarRunnerBinPath = Join-Path $SonarRunnerBinDirectory "sonar-runner.bat"
+    Write-Verbose "Using sonar-runner path '$SonarRunnerBinPath'"
+
+    $SonarPropertiesFilePath = Join-Path $SourcesDirectory $SonarPropertiesFileName
+    Write-Verbose "Using sonar project-configuration path '$SonarPropertiesFilePath'"
+
+    if (-not (Test-Path $SonarPropertiesFilePath)) {
+        Write-Verbose "Sonar project-configuration not found, Sonar analysis skipped"
+        return
+    }
+
+    if (-not (Test-Path $SonarRunnerBinPath)) {
+        Write-Verbose "Sonar-sunner not installed"
+        return
+    }
+
+    if (-not $WhatIf) {
+        $sonar = New-Object System.Diagnostics.Process
+        $sonar.StartInfo.Filename = $SonarRunnerBinPath
+        $sonar.StartInfo.WorkingDirectory = $SourcesDirectory
+        $sonar.StartInfo.RedirectStandardOutput = $true
+        $sonar.StartInfo.RedirectStandardError = $true
+        $sonar.StartInfo.UseShellExecute = $false
+        $started = $sonar.start()
+        Write-Verbose "Sonar-runner started: '$started'"
+        
+		while (-not $sonar.HasExited) {
+			$output = $sonar.StandardOutput.ReadToEnd()
+	        Write-Verbose $output
+		}
+
+        $error = $sonar.StandardError.ReadToEnd();
+        if ($error) {
+            Write-Error $error
+        }
+    }
+    else {
+        Write-Verbose "What if..., analysis skipped"
     }
 }
