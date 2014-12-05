@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>TFSBuildScripts</id>
-    <version>1.1.0-rc1</version>
+    <version>1.1.0-rc2</version>
     <authors>Jeroen Swart</authors>
     <owners>Jeroen Swart</owners>
     <projectUrl>https://github.com/CodeblackNL/TFSBuildScripts</projectUrl>
@@ -17,6 +17,6 @@
     <file src="\tools\**\*.*" target="tools" /> 
     <file src="..\src\Build.psm1" target="tools\Build.psm1" />
     <file src="..\src\PreBuild.ps1" target="tools\PreBuild.ps1" />
-    <file src="..\src\PreBuild.ps1" target="tools\PostBuild.ps1" />
+    <file src="..\src\PostBuild.ps1" target="tools\PostBuild.ps1" />
   </files>
 </package>
