@@ -11,8 +11,8 @@
     Versions:
     - 1.0.0  05-12-2014  Initial version
 
-.PARAMETER  SonarRunnerBinFolder
-    Specifies the folder containing the SonarRunner binaries. Default is 'C:\sonar\bin'.
+.PARAMETER  SonarRunnerBinDirectory
+    Specifies the directory containing the SonarRunner binaries. Default is 'C:\sonar\bin'.
 .PARAMETER  SonarPropertiesFileName
     Specifies the name of the sonar-properties file. Default is 'sonar-project.properties'.
 .PARAMETER  Disable
@@ -22,7 +22,7 @@
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $false)]
-    [string]$SonarRunnerBinFolder,
+    [string]$SonarRunnerBinDirectory,
     [Parameter(Mandatory = $false)]
     [string]$SonarPropertiesFileName,
     [Parameter(Mandatory = $false)]
@@ -36,15 +36,12 @@ Import-Module (Join-Path $PSScriptRoot Build.psm1)
 $sourcesDirectory = Get-EnvironmentVariable "TF_BUILD_SOURCESDIRECTORY" -Verbose:$VerbosePreference
 
 if (-not $Disabled) {
-    try {
-		Remove-BOM -Directory $sourcesDirectory
+	Remove-BOM -Directory $sourcesDirectory
 
-        Invoke-SonarRunner -SourcesDirectory $sourcesDirectory `
-		                   -SonarRunnerBinFolder $SonarRunnerBinFolder `
-	                       -SonarPropertiesFileName $SonarPropertiesFileName `
-                           -Verbose:$VerbosePreference
-    }
-    catch { }
+    Invoke-SonarRunner -SourcesDirectory $sourcesDirectory `
+		               -SonarRunnerBinDirectory $SonarRunnerBinDirectory `
+	                   -SonarPropertiesFileName $SonarPropertiesFileName `
+                       -Verbose:$VerbosePreference
 }
 else {
     Write-Verbose "Script disabled; Sonar analysis skipped"

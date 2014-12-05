@@ -419,7 +419,7 @@ function Invoke-SonarRunner {
 
     if (-not $SonarRunnerBinDirectory) {
         $SonarRunnerBinDirectory = "C:\sonar\bin"
-        Write-Verbose "SonarRunnerBinFolder not provided, using default '$SonarRunnerBinDirectory'"
+        Write-Verbose "SonarRunnerBinDirectory not provided, using default '$SonarRunnerBinDirectory'"
     }
 
     if (-not $SonarPropertiesFileName) {
