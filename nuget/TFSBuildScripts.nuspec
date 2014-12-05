@@ -15,7 +15,8 @@
   </metadata>
   <files>
     <file src="\tools\**\*.*" target="tools" /> 
-    <file src="..\src\Build.psm1" target="tools\Build.psm1" /> 
-    <file src="..\src\PreBuild.ps1" target="tools\PreBuild.ps1" /> 
+    <file src="..\src\Build.psm1" target="tools\Build.psm1" />
+    <file src="..\src\PreBuild.ps1" target="tools\PreBuild.ps1" />
+    <file src="..\src\PreBuild.ps1" target="tools\PostBuild.ps1" />
   </files>
 </package>
