@@ -15,7 +15,7 @@
     Specifies the directory containing the SonarRunner binaries. Default is 'C:\sonar\bin'.
 .PARAMETER  SonarPropertiesFileName
     Specifies the name of the sonar-properties file. Default is 'sonar-project.properties'.
-.PARAMETER  Disable
+.PARAMETER  Disabled
     Convenience option so you can debug this script or disable it in your build definition
     without having to remove it from the 'Post-build script path' build process parameter.
 #>
@@ -26,7 +26,7 @@ param (
     [Parameter(Mandatory = $false)]
     [string]$SonarPropertiesFileName,
     [Parameter(Mandatory = $false)]
-    [switch]$Disable = $false
+    [switch]$Disabled = $false
 )
 
 # include the module containing common build-script functions.
