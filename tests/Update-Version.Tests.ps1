@@ -138,7 +138,7 @@ Describe "Update-Version" {
         }
 
         It "should return correct version when pattern is 'YYYY.M.D.B'" {
-            $versionPattern = "yyyy.M.D.B"
+            $versionPattern = "YYYY.M.D.B"
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
@@ -320,7 +320,7 @@ Describe "Update-Version" {
         }
 
         It "should return correct version when pattern is 'YYYY.M.D.B'" {
-            $versionPattern = "yyyy.M.D.B"
+            $versionPattern = "YYYY.M.D.B"
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
@@ -627,7 +627,7 @@ Describe "Update-Version" {
         }
 
         It "should return correct version when pattern is 'YYYY.M.D.B'" {
-            $versionPattern = "yyyy.M.D.B"
+            $versionPattern = "YYYY.M.D.B"
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
@@ -934,7 +934,7 @@ Describe "Update-Version" {
         }
 
         It "should return correct version when pattern is 'YYYY.M.D.B'" {
-            $versionPattern = "yyyy.M.D.B"
+            $versionPattern = "YYYY.M.D.B"
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
