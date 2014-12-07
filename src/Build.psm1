@@ -11,6 +11,7 @@
     Versions:
     - 1.0.0  11-11-2014  Initial version; includes Update-Version
 	- 1.1.0  05-12-2014  Added Invoke-SonarRunner & Remove-BOM
+	- 1.2.0  07-12-2014  Added package versioning to Update-Version
 #>
 
 set-alias ?: Invoke-Ternary -Option AllScope -Description "PSCX filter alias"
@@ -80,10 +81,14 @@ function Update-Version {
         Specifies the version, or pattern, for the assembly-file-version.
         Depending on the provided version (either through the Version or BuildNumber parameters)
         the default is '#.#.#.#' (.NET) or '#.#.#.0' (SemVer).
-    .PARAMETER  $ProductVersionPattern
+    .PARAMETER  ProductVersionPattern
         Specifies the version, or pattern, for the assembly-informational-version.
         Depending on the provided version (either through the Version or BuildNumber parameters)
-        the default is '#.#.#.#' (.NET) or '#.#.#.0' (SemVer).
+        the default is '#.#.#.#' (.NET) or '#.#.###' (SemVer).
+    .PARAMETER  PackageVersionPattern
+        Specifies the version, or pattern, for the nuget-packages.
+        Depending on the provided version (either through the Version or BuildNumber parameters)
+        the default is '#.#.#.#' (.NET) or '#.#.###' (SemVer).
     .PARAMETER  WhatIf
         Specifies that no changes should be made.
 #>
@@ -103,6 +108,8 @@ function Update-Version {
         [string]$FileVersionPattern,
         [Parameter(Mandatory = $false)]
         [string]$ProductVersionPattern,
+        [Parameter(Mandatory = $false)]
+        [string]$PackageVersionPattern,
         [Parameter(Mandatory = $false)]
         [switch]$WhatIf = $false
     )
@@ -263,14 +270,19 @@ function Update-Version {
     if(-not $ProductVersionPattern) {
         $ProductVersionPattern = $versionData.Type | ?: { $_ -eq "SemVer" } { "#.#.###" } { "#.#.#.#" }
     }
+    if(-not $PackageVersionPattern) {
+        $PackageVersionPattern = $versionData.Type | ?: { $_ -eq "SemVer" } { "#.#.###" } { "#.#.#.#" }
+    }
 
     $assemblyVersion = Format-Version -VersionData $versionData -VersionFormat $AssemblyVersionPattern
     $fileVersion = Format-Version -VersionData $versionData -VersionFormat $FileVersionPattern
     $productVersion = Format-Version -VersionData $versionData -VersionFormat $ProductVersionPattern
+    $packageVersion = Format-Version -VersionData $versionData -VersionFormat $PackageVersionPattern
 
     Write-Verbose "AssemblyVersion: $assemblyVersion"
     Write-Verbose "FileVersion: $fileVersion"
     Write-Verbose "ProductVersion: $productVersion"
+    Write-Verbose "PackageVersion: $packageVersion"
 
     $regex = @{
         ".cs" = @{
@@ -318,7 +330,9 @@ function Update-Version {
     }
 
     # find the files containing the version-attributes
-    $files = Get-ChildItem -Path $sourcesDirectory -Recurse -Include $AssemblyVersionFilePattern
+	$files = @()
+    $files += Get-ChildItem -Path $sourcesDirectory -Recurse -Include $AssemblyVersionFilePattern
+    $files += Get-ChildItem -Path $sourcesDirectory -Recurse -Include "*.nuspec"
 
     # apply the version to the assembly property-files
     if($files) {
@@ -330,16 +344,24 @@ function Update-Version {
                 attrib $file -r
 
                 $fileExtension = $file.Extension.ToLowerInvariant()
+				if ($fileExtension -eq ".nuspec") {
+					[xml]$fileContent = Get-Content -Path $file
 
-                if (-not ($regex.ContainsKey($fileExtension) -and $format.ContainsKey($fileExtension))) {
-                    throw "'$($file.Extension)' is not one of the accepted file types (.cs, .vb, .cpp, .fs)."
-                }
+					$fileContent.package.metadata.version = $packageVersion
 
-                $fileContent = $fileContent -replace $regex[$fileExtension].AssemblyVersion, ($format[$fileExtension].AssemblyVersion -f $assemblyVersion)
-                $fileContent = $fileContent -replace $regex[$fileExtension].FileVersion, ($format[$fileExtension].FileVersion -f $fileVersion)
-                $fileContent = $fileContent -replace $regex[$fileExtension].ProductVersion, ($format[$fileExtension].ProductVersion -f $productVersion)
+					$fileContent.Save($file)
+				}
+				else {
+					if (-not ($regex.ContainsKey($fileExtension) -and $format.ContainsKey($fileExtension))) {
+						throw "'$($file.Extension)' is not one of the accepted file types (.cs, .vb, .cpp, .fs)."
+					}
 
-                $fileContent | Out-File $file
+					$fileContent = $fileContent -replace $regex[$fileExtension].AssemblyVersion, ($format[$fileExtension].AssemblyVersion -f $assemblyVersion)
+					$fileContent = $fileContent -replace $regex[$fileExtension].FileVersion, ($format[$fileExtension].FileVersion -f $fileVersion)
+					$fileContent = $fileContent -replace $regex[$fileExtension].ProductVersion, ($format[$fileExtension].ProductVersion -f $productVersion)
+
+					$fileContent | Out-File $file
+				}
 
                 Write-Verbose "$($file.FullName) - version applied"
             }
