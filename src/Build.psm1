@@ -382,11 +382,49 @@ function Remove-BOM {
 		Write-Verbose "Removing BOM from '$($file.FullName)'."
 		if (-not $WhatIf) {
 			Set-ItemProperty $file.FullName -name IsReadOnly -value $false
-
+	
 			$content = Get-Content $file.FullName
 			[System.IO.File]::WriteAllLines($file.FullName, $content)
 		}
 	}
+}
+
+function Invoke-Process {
+<#
+    .SYNOPSIS
+        Starts a process.
+    .DESCRIPTION
+        Starts a process using the specified file-path and working-directory.
+
+    .PARAMETER  FilePath
+        Specifies the file-path of the application file to run in the process.
+    .PARAMETER  WorkingDirectory
+        Specifies the working-directory for the new process.
+#>
+	param (
+		[string]$FilePath,
+		[string]$WorkingDirectory
+	)
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo.RedirectStandardOutput = $true
+    $process.StartInfo.RedirectStandardError = $true
+    $process.StartInfo.UseShellExecute = $false
+
+    $process.StartInfo.Filename = $FilePath
+    $process.StartInfo.WorkingDirectory = $WorkingDirectory
+
+    $started = $process.start()
+        
+	while (-not $process.HasExited) {
+		$output = $process.StandardOutput.ReadToEnd()
+	    Write-Verbose $output
+	}
+
+    $error = $process.StandardError.ReadToEnd();
+    if ($error) {
+        Write-Error $error
+    }
 }
 
 function Invoke-SonarRunner {
@@ -396,7 +434,7 @@ function Invoke-SonarRunner {
     .DESCRIPTION
         Runs the sonar analysis.
 
-    .PARAMETER  $SourcesDirectory
+    .PARAMETER  SourcesDirectory
         Specifies the root-directory containing the source-files.
     .PARAMETER  SonarRunnerBinDirectory
         Specifies the directory containing the sonar-runner binaries. Default is 'C:\sonar\bin'.
@@ -433,37 +471,25 @@ function Invoke-SonarRunner {
     $SonarPropertiesFilePath = Join-Path $SourcesDirectory $SonarPropertiesFileName
     Write-Verbose "Using sonar project-configuration path '$SonarPropertiesFilePath'"
 
-    if (-not (Test-Path $SonarPropertiesFilePath)) {
-        Write-Verbose "Sonar project-configuration not found, Sonar analysis skipped"
-        return
-    }
-
     if (-not (Test-Path $SonarRunnerBinPath)) {
         Write-Verbose "Sonar-sunner not installed"
         return
     }
 
-    if (-not $WhatIf) {
-        $sonar = New-Object System.Diagnostics.Process
-        $sonar.StartInfo.Filename = $SonarRunnerBinPath
-        $sonar.StartInfo.WorkingDirectory = $SourcesDirectory
-        $sonar.StartInfo.RedirectStandardOutput = $true
-        $sonar.StartInfo.RedirectStandardError = $true
-        $sonar.StartInfo.UseShellExecute = $false
-        $started = $sonar.start()
-        Write-Verbose "Sonar-runner started: '$started'"
-        
-		while (-not $sonar.HasExited) {
-			$output = $sonar.StandardOutput.ReadToEnd()
-	        Write-Verbose $output
-		}
+    if (-not (Test-Path $SonarPropertiesFilePath)) {
+        Write-Verbose "Sonar project-configuration not found, Sonar analysis skipped"
+        return
+    }
 
-        $error = $sonar.StandardError.ReadToEnd();
-        if ($error) {
-            Write-Error $error
-        }
+    if (-not $WhatIf) {
+		Invoke-Process -FilePath $SonarRunnerBinPath -WorkingDirectory $SourcesDirectory
     }
     else {
         Write-Verbose "What if..., analysis skipped"
     }
 }
+
+Export-ModuleMember -Function Get-EnvironmentVariable
+Export-ModuleMember -Function Update-Version
+Export-ModuleMember -Function Remove-BOM
+Export-ModuleMember -Function Invoke-SonarRunner

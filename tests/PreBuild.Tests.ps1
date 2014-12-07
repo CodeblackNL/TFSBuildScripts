@@ -6,7 +6,7 @@ Remove-Module "Build" -ErrorAction SilentlyContinue
 Import-Module "$PSScriptRoot\..\src\Build.psm1"
 
 Describe "PreBuild" {
-    Context "called from the build-workflow" {
+    Context "when called from the build-workflow" {
         $sut = $PSScriptRoot.Replace("\tests", "\src\PreBuild.ps1")
         $buildNumber = "Test_2014-11-27"
         $sourcesDirectory = "TestDrive:\"
@@ -92,7 +92,7 @@ Describe "PreBuild" {
         }
     }
 
-    Context "called from the build-workflow, but disabled" {
+    Context "when called from the build-workflow, but disabled" {
         $sut = $PSScriptRoot.Replace("\tests", "\src\PreBuild.ps1")
         Mock Update-Version
 
