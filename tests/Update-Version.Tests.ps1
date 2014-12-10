@@ -90,9 +90,11 @@ Describe "Update-Version" {
     Context "when version is explicitly provided in .NET format" {
         $buildNumber = "Test_2014-11-27"
         $path = "TestDrive:\AssemblyInfo.cs"
+        $nuspecPath = "TestDrive:\package.nuspec"
         $expectedVersion = "2.3.1.4"
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
+        Set-Content -Path $nuspecPath -Value $Package_Nuspec
 
         It "should use this version for the assembly-version" {
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $expectedVersion -AssemblyVersionPattern "#.#.#.#"
@@ -114,18 +116,27 @@ Describe "Update-Version" {
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
+
+        It "should use this version for the package-version" {
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $expectedVersion -PackageVersionPattern "#.#.#.#"
+
+            $actualVersion = Get-PackageVersion -Path $nuspecPath
+            $actualVersion | Should Be $expectedVersion
+        }
     }
 
     Context "when version is explicitly provided in SemVer format" {
         $buildNumber = "Test_2014-11-27"
         $path = "TestDrive:\AssemblyInfo.cs"
+        $nuspecPath = "TestDrive:\package.nuspec"
         $version = "2.3.1-ci42+12345.0"
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
+        Set-Content -Path $nuspecPath -Value $Package_Nuspec
 
         It "should use this version for the assembly-version" {
             # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern "#.#.#.0"
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be "2.3.1.0"
@@ -133,17 +144,25 @@ Describe "Update-Version" {
 
         It "should use this version for the file-version" {
             # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern "#.#.#.0"
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be "2.3.1.0"
         }
 
         It "should use this version for the product-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern "#.#.###"
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be "2.3.1-ci42+12345.0"
+        }
+
+        It "should use this version for the package-version" {
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern "#.#.###"
+
+            # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
+            $actualVersion = Get-PackageVersion -Path $nuspecPath
+            $actualVersion | Should Be "2.3.1-ci42-12345-0"
         }
     }
 
@@ -276,9 +295,11 @@ Describe "Update-Version" {
     Context "when version is in the build-number in .NET format" {
         $buildNumber = "Test_2014-11-27_3.2.12345.7"
         $path = "TestDrive:\AssemblyInfo.cs"
+        $nuspecPath = "TestDrive:\package.nuspec"
         $expectedVersion = "3.2.12345.7"
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
+        Set-Content -Path $nuspecPath -Value $Package_Nuspec
 
         It "should use this version for the assembly-version" {
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern "#.#.#.#"
@@ -300,17 +321,26 @@ Describe "Update-Version" {
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
+
+        It "should use this version for the package-version" {
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern "#.#.#.#"
+
+            $actualVersion = Get-PackageVersion -Path $nuspecPath
+            $actualVersion | Should Be $expectedVersion
+        }
     }
 
     Context "when version is in the build-number in SemVer format" {
         $buildNumber = "Test_2014-11-27_2.3.1-ci42+12345.07"
         $path = "TestDrive:\AssemblyInfo.cs"
+        $nuspecPath = "TestDrive:\package.nuspec"
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
+        Set-Content -Path $nuspecPath -Value $Package_Nuspec
 
         It "should use this version for the assembly-version" {
             # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern "#.#.#.0"
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be "2.3.1.0"
@@ -318,17 +348,25 @@ Describe "Update-Version" {
 
         It "should use this version for the file-version" {
             # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern "#.#.#.0"
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be "2.3.1.0"
         }
 
         It "should use this version for the product-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern "#.#.###"
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be "2.3.1-ci42+12345.07"
+        }
+
+        It "should use this version for the package-version" {
+            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern "#.#.###"
+
+            # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
+            $actualVersion = Get-PackageVersion -Path $nuspecPath
+            $actualVersion | Should Be "2.3.1-ci42-12345-07"
         }
     }
 
@@ -1483,7 +1521,8 @@ Describe "Update-Version" {
 
         It "should return correct version when format is '#.#.###'" {
             $versionPattern = "#.#.###"
-            $expectedVersion = "1.2.3-ci0008+14331.07"
+            # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
+            $expectedVersion = "1.2.3-ci0008-14331-07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
 

@@ -12,6 +12,7 @@
     - 1.0.0  11-11-2014  Initial version; includes Update-Version
 	- 1.1.0  05-12-2014  Added Invoke-SonarRunner & Remove-BOM
 	- 1.2.0  07-12-2014  Added package versioning to Update-Version
+	- 1.2.1  10-12-2014  Fix package versioning for NuGet; it does not fully support SemVer
 #>
 
 set-alias ?: Invoke-Ternary -Option AllScope -Description "PSCX filter alias"
@@ -164,7 +165,9 @@ function Update-Version {
             [Parameter(Mandatory = $false)]
             [Hashtable]$VersionData,
             [Parameter(Mandatory = $false)]
-            [int]$Rev
+            [int]$Rev,
+            [Parameter(Mandatory = $false)]
+            [switch]$NuGetPackageVersion
         )
 
         # normalize version format
@@ -192,7 +195,22 @@ function Update-Version {
             #$newVersionFormat = $newVersionFormat -replace "{revision(:\d+)?}", '{3$1}'
 
             if ($VersionData.Type -eq "SemVer") {
-                $version = $version -f $VersionData.Major, $VersionData.Minor, $VersionData.Patch, $VersionData.PreRelease, $VersionData.BuildMetadata
+				if ($NuGetPackageVersion) {
+					# NuGet doesn't fully support semver
+					# - dot separated identifiers
+					$VersionData.PreRelease = $VersionData.PreRelease.Replace(".", "-")
+					$VersionData.BuildMetadata = $VersionData.BuildMetadata.Replace(".", "-")
+
+                    # build-metadata
+					if ($VersionData.PreRelease -and $VersionData.PreRelease.Length -gt 0 -and -not [char]::IsDigit($VersionData.PreRelease, $VersionData.PreRelease.Length - 1)) {
+						$VersionData.BuildMetadata = $VersionData.BuildMetadata.Replace("+", "")
+	                }
+					else {
+						$VersionData.BuildMetadata = $VersionData.BuildMetadata.Replace("+", "-")
+					}
+				}
+
+				$version = $version -f $VersionData.Major, $VersionData.Minor, $VersionData.Patch, $VersionData.PreRelease, $VersionData.BuildMetadata
             }
             else {
                 $version = $version -f $VersionData.Major, $VersionData.Minor, $VersionData.Build, $VersionData.Revision
@@ -277,7 +295,7 @@ function Update-Version {
     $assemblyVersion = Format-Version -VersionData $versionData -VersionFormat $AssemblyVersionPattern
     $fileVersion = Format-Version -VersionData $versionData -VersionFormat $FileVersionPattern
     $productVersion = Format-Version -VersionData $versionData -VersionFormat $ProductVersionPattern
-    $packageVersion = Format-Version -VersionData $versionData -VersionFormat $PackageVersionPattern
+    $packageVersion = Format-Version -VersionData $versionData -VersionFormat $PackageVersionPattern -NuGetPackageVersion
 
     Write-Verbose "AssemblyVersion: $assemblyVersion"
     Write-Verbose "FileVersion: $fileVersion"
@@ -330,7 +348,7 @@ function Update-Version {
     }
 
     # find the files containing the version-attributes
-	$files = @()
+    $files = @()
     $files += Get-ChildItem -Path $sourcesDirectory -Recurse -Include $AssemblyVersionFilePattern
     $files += Get-ChildItem -Path $sourcesDirectory -Recurse -Include "*.nuspec"
 
@@ -344,24 +362,24 @@ function Update-Version {
                 attrib $file -r
 
                 $fileExtension = $file.Extension.ToLowerInvariant()
-				if ($fileExtension -eq ".nuspec") {
-					[xml]$fileContent = Get-Content -Path $file
+                if ($fileExtension -eq ".nuspec") {
+                    [xml]$fileContent = Get-Content -Path $file
 
-					$fileContent.package.metadata.version = $packageVersion
+                    $fileContent.package.metadata.version = $packageVersion
 
-					$fileContent.Save($file)
-				}
-				else {
-					if (-not ($regex.ContainsKey($fileExtension) -and $format.ContainsKey($fileExtension))) {
-						throw "'$($file.Extension)' is not one of the accepted file types (.cs, .vb, .cpp, .fs)."
-					}
+                    $fileContent.Save($file)
+                }
+                else {
+                    if (-not ($regex.ContainsKey($fileExtension) -and $format.ContainsKey($fileExtension))) {
+                        throw "'$($file.Extension)' is not one of the accepted file types (.cs, .vb, .cpp, .fs)."
+                    }
 
-					$fileContent = $fileContent -replace $regex[$fileExtension].AssemblyVersion, ($format[$fileExtension].AssemblyVersion -f $assemblyVersion)
-					$fileContent = $fileContent -replace $regex[$fileExtension].FileVersion, ($format[$fileExtension].FileVersion -f $fileVersion)
-					$fileContent = $fileContent -replace $regex[$fileExtension].ProductVersion, ($format[$fileExtension].ProductVersion -f $productVersion)
+                    $fileContent = $fileContent -replace $regex[$fileExtension].AssemblyVersion, ($format[$fileExtension].AssemblyVersion -f $assemblyVersion)
+                    $fileContent = $fileContent -replace $regex[$fileExtension].FileVersion, ($format[$fileExtension].FileVersion -f $fileVersion)
+                    $fileContent = $fileContent -replace $regex[$fileExtension].ProductVersion, ($format[$fileExtension].ProductVersion -f $productVersion)
 
-					$fileContent | Out-File $file
-				}
+                    $fileContent | Out-File $file
+                }
 
                 Write-Verbose "$($file.FullName) - version applied"
             }
@@ -422,10 +440,16 @@ function Invoke-Process {
         Specifies the file-path of the application file to run in the process.
     .PARAMETER  WorkingDirectory
         Specifies the working-directory for the new process.
+    .PARAMETER  Arguments
+        Specifies the arguments for the new process.
 #>
 	param (
+        [Parameter(Mandatory = $true)]
 		[string]$FilePath,
-		[string]$WorkingDirectory
+        [Parameter(Mandatory = $true)]
+		[string]$WorkingDirectory,
+        [Parameter(Mandatory = $false)]
+		[string]$Arguments
 	)
 
     $process = New-Object System.Diagnostics.Process
@@ -435,6 +459,7 @@ function Invoke-Process {
 
     $process.StartInfo.Filename = $FilePath
     $process.StartInfo.WorkingDirectory = $WorkingDirectory
+	$process.StartInfo.Arguments = $Arguments
 
     $started = $process.start()
         
