@@ -608,7 +608,7 @@ function New-NuGetPackage {
     .PARAMETER  SourcesDirectory
         Specifies the root-directory containing the source-files.
     .PARAMETER  BinariesDirectory
-        Specifies the root-directory containing the source-files.
+        Specifies the root-directory containing the results of the build.
     .PARAMETER  DropDirectory
         Specifies the drop-directory containing the results of the build.
     .PARAMETER  NuspecFilePath
@@ -762,9 +762,9 @@ function New-NuGetPackage {
 function Push-NuGetPackage {
 <#
     .SYNOPSIS
-        Creates new NuGet-packages according to the specified nuspec-files.
+        Pushes NuGet-packages to the specified package-source.
     .DESCRIPTION
-        Creates new NuGet-packages according to the specified nuspec-files.
+        Pushes NuGet-packages to the specified package-source.
 
     .PARAMETER  DropDirectory
         Specifies the drop-directory containing the results of the build.
