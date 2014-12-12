@@ -10,6 +10,7 @@
     Author: Jeroen Swart
     Versions:
     - 1.0.0  11-11-2014  Initial version
+    - 1.1.0  07-12-2014  Added package versioning to Update-Version
 
 .PARAMETER  $AssemblyVersionFilePattern
     Specifies the pattern to use for finding source-files containing the version-attributes. Default is 'AssemblyInfo.*'.
@@ -27,6 +28,10 @@
     Specifies the version, or pattern, for the assembly-informational-version.
     Depending on the provided version (either through the Version or BuildNumber parameters)
     the default is '#.#.#.#' (.NET) or '#.#.#.0' (SemVer).
+.PARAMETER  PackageVersionPattern
+    Specifies the version, or pattern, for the nuget-packages.
+    Depending on the provided version (either through the Version or BuildNumber parameters)
+    the default is '#.#.#.#' (.NET) or '#.#.###' (SemVer).
 .PARAMETER  Disabled
     Convenience option so you can debug this script or disable it in your build definition
     without having to remove it from the 'Pre-build script path' build process parameter.
@@ -44,6 +49,8 @@ param (
     [Parameter(Mandatory = $false)]
     [string]$ProductVersionPattern,
     [Parameter(Mandatory = $false)]
+    [string]$PackageVersionPattern,
+    [Parameter(Mandatory = $false)]
     [switch]$Disabled = $false
 )
 
@@ -60,6 +67,7 @@ if (-not $Disabled) {
                    -AssemblyVersionPattern $AssemblyVersionPattern `
                    -FileVersionPattern $FileVersionPattern `
                    -ProductVersionPattern $ProductVersionPattern `
+				   -PackageVersionPattern $PackageVersionPattern `
                    -Verbose:$VerbosePreference
 }
 else {
