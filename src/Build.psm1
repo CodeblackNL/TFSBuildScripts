@@ -14,6 +14,7 @@
     - 1.2.0  07-12-2014  Added package versioning to Update-Version
     - 1.2.1  10-12-2014  Fix package versioning for NuGet; it does not fully support SemVer
     - 1.3.0  12-12-2014  Added package packaging & publishing
+    - 1.3.1  30-12-2014  Allow an explicit version to reference the version in the build-number
 #>
 
 set-alias ?: Invoke-Ternary -Option AllScope -Description "PSCX filter alias"
@@ -248,8 +249,10 @@ function Update-Version {
         $version = $version -creplace 'D', $now.Day
         $version = $version -creplace 'J', "$($now.ToString("yy"))$('{0:000}' -f [int]$now.DayOfYear)"
         if (-not $version.Contains("+")) {
+            $version = $version -creplace '\.BBB', ".$Rev"
             $version = $version -creplace '\.BB', ".$Rev"
         }
+        $version = $version -creplace 'BBB', ('{0:000}' -f [int]$Rev)
         $version = $version -creplace 'BB', ('{0:00}' -f [int]$Rev)
         $version = $version -creplace 'B', $Rev
 
@@ -267,12 +270,9 @@ function Update-Version {
         $versionData = Get-VersionData -VersionString $BuildNumber
     }
     else {
-        # process version-formatting ('YYYY','YY','M','D','B','J')
-        $revMatch = [regex]::match($BuildNumber, '\d+$')
-        if ($revMatch.Success) {
-            $rev = $revMatch.Groups[0].Value
-        }
-        $Version = Format-Version -VersionFormat $Version -Rev $rev
+        # get version-data from the build-number
+        $versionData = Get-VersionData -VersionString $BuildNumber
+        $Version = Format-Version -VersionData $versionData -VersionFormat $Version
 
         # get version-data from the provided version
         $versionData = Get-VersionData -VersionString $Version
