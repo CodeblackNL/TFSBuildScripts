@@ -87,6 +87,9 @@ function Get-PackageVersion {
 }
 
 Describe "Update-Version" {
+    $now = [DateTime]::Now
+    $julian = "$($now.ToString("yy"))$($now.DayOfYear.ToString('000'))"
+
     Context "when version is explicitly provided in .NET format" {
         $buildNumber = "Test_2014-11-27"
         $path = "TestDrive:\AssemblyInfo.cs"
@@ -177,8 +180,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.J.B'" {
             $versionPattern = "1.2.J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
@@ -267,8 +268,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
             $versionPattern = "1.2.3-ci+J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
@@ -279,8 +278,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
             $versionPattern = "1.2.3-ci+J.BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
@@ -291,8 +288,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
             $versionPattern = "1.2.3-ci+J.BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
@@ -303,8 +298,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
             $versionPattern = "1.2.3-ciJ-B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
@@ -315,8 +308,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
             $versionPattern = "1.2.3-ciJ-BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
@@ -327,8 +318,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
             $versionPattern = "1.2.3-ciJ-BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
@@ -504,8 +493,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.J.B'" {
             $versionPattern = "1.2.J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
@@ -594,8 +581,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
             $versionPattern = "1.2.3-ci+J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
@@ -606,8 +591,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
             $versionPattern = "1.2.3-ci+J.BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
@@ -618,8 +601,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
             $versionPattern = "1.2.3-ci+J.BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
@@ -630,8 +611,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
             $versionPattern = "1.2.3-ciJ-B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
@@ -642,8 +621,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
             $versionPattern = "1.2.3-ciJ-BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
@@ -654,8 +631,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
             $versionPattern = "1.2.3-ciJ-BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
@@ -857,8 +832,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.J.B'" {
             $versionPattern = "1.2.J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
@@ -947,8 +920,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
             $versionPattern = "1.2.3-ci+J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
@@ -959,8 +930,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
             $versionPattern = "1.2.3-ci+J.BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
@@ -971,8 +940,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
             $versionPattern = "1.2.3-ci+J.BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
@@ -983,8 +950,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
             $versionPattern = "1.2.3-ciJ-B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
@@ -995,8 +960,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
             $versionPattern = "1.2.3-ciJ-BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
@@ -1007,8 +970,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
             $versionPattern = "1.2.3-ciJ-BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
@@ -1210,8 +1171,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.J.B'" {
             $versionPattern = "1.2.J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
@@ -1300,8 +1259,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
             $versionPattern = "1.2.3-ci+J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
@@ -1312,8 +1269,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
             $versionPattern = "1.2.3-ci+J.BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
@@ -1324,8 +1279,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
             $versionPattern = "1.2.3-ci+J.BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
@@ -1336,8 +1289,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
             $versionPattern = "1.2.3-ciJ-B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
@@ -1348,8 +1299,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
             $versionPattern = "1.2.3-ciJ-BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
@@ -1360,8 +1309,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
             $versionPattern = "1.2.3-ciJ-BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
@@ -1563,8 +1510,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.J.B'" {
             $versionPattern = "1.2.J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
@@ -1653,8 +1598,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
             $versionPattern = "1.2.3-ci+J.B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
@@ -1665,8 +1608,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
             $versionPattern = "1.2.3-ci+J.BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
@@ -1677,8 +1618,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
             $versionPattern = "1.2.3-ci+J.BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci+$julian.007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
@@ -1689,8 +1628,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
             $versionPattern = "1.2.3-ciJ-B"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-7"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
@@ -1701,8 +1638,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
             $versionPattern = "1.2.3-ciJ-BB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-07"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
@@ -1713,8 +1648,6 @@ Describe "Update-Version" {
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
             $versionPattern = "1.2.3-ciJ-BBB"
-            $now = [DateTime]::Now
-            $julian = "$($now.ToString("yy"))$($now.DayOfYear)"
             $expectedVersion = "1.2.3-ci$julian-007"
 
             Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
