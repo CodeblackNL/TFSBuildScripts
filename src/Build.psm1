@@ -866,6 +866,17 @@ function Push-NuGetPackage {
     }
 }
 
+function Invoke-GetRest {
+	param (
+		[string]$Uri
+	)
+
+	$webClient = New-Object System.Net.WebClient
+	$webClient.UseDefaultCredentials = $true
+
+	return $webClient.DownloadString($Uri)
+}
+
 function Invoke-Release {
     [CmdletBinding()]
     param(
@@ -905,12 +916,12 @@ function Invoke-Release {
     try {
 	    $url = "$orchestratorService/InitiateReleaseFromBuild?teamFoundationServerUrl=$server&teamProject=$project&buildDefinition=$definition&buildNumber=$build&targetStageName=$targetStage"
         Write-Verbose "Executing the following API call: '$url'"
-        $releaseId = Invoke-RestMethod -Uri $url -Method Get
+        $releaseId = Invoke-GetRest -Uri $url
         Write-Verbose "Created release '$releaseId'"
 
         $url = "$orchestratorService/ReleaseStatus?releaseId=$releaseId"
         Write-Verbose "Executing the following API call: '$url'"
-        $releaseStatus = Invoke-RestMethod -Uri $url -Method Get
+        $releaseStatus = Invoke-GetRest -Uri $url
         switch ($releaseStatus) {
             "2" { Write-Verbose "Status 'InProgress'" }
             "3" { Write-Verbose "Status 'Released'" }

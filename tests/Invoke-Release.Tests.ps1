@@ -23,9 +23,9 @@ Describe "Invoke-Release" {
         $expectedInitiateUrl +=	"&targetStageName=$targetStageName"
         $expectedStatusUrl = "$baseUrl/ReleaseStatus?releaseId=42"
 
-        Mock -ModuleName Build -CommandName Invoke-RestMethod -MockWith { }
-        Mock -ModuleName Build -CommandName Invoke-RestMethod -MockWith { return 42 } -ParameterFilter { $Uri -eq $expectedInitiateUrl -and $Method -eq 'Get' }
-        Mock -ModuleName Build -CommandName Invoke-RestMethod -MockWith { return 2 } -ParameterFilter { $Uri -eq $expectedStatusUrl -and $Method -eq 'Get' }
+        Mock -ModuleName Build -CommandName Invoke-GetRest -MockWith { }
+        Mock -ModuleName Build -CommandName Invoke-GetRest -MockWith { return 42 } -ParameterFilter { $Uri -eq $expectedInitiateUrl }
+        Mock -ModuleName Build -CommandName Invoke-GetRest -MockWith { return 2 } -ParameterFilter { $Uri -eq $expectedStatusUrl }
 
         Invoke-Release -RMServer $rmServer `
                        -TeamFoundationServerUrl $tfsUrl -TeamProjectName $teamProjectName `
@@ -33,11 +33,11 @@ Describe "Invoke-Release" {
                        -TargetStageName $targetStageName
 
         It "should initiate release" {
-            Assert-MockCalled Invoke-RestMethod -ModuleName Build -ParameterFilter { $Uri -eq $expectedInitiateUrl -and $Method -eq 'Get' }
+            Assert-MockCalled Invoke-GetRest -ModuleName Build -ParameterFilter { $Uri -eq $expectedInitiateUrl }
         }
 
         It "should retrieve release status" {
-            Assert-MockCalled Invoke-RestMethod -ModuleName Build -ParameterFilter { $Uri -eq $expectedStatusUrl -and $Method -eq 'Get' }
+            Assert-MockCalled Invoke-GetRest -ModuleName Build -ParameterFilter { $Uri -eq $expectedStatusUrl }
         }
     }
 }
