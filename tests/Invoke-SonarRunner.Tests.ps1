@@ -8,6 +8,7 @@ Import-Module "$PSScriptRoot\..\src\Build.psm1"
 Describe "Invoke-SonarRunner" {
     Context "when called with defaults" {
 		$sourcesDirectory = "TestDrive:\src"
+		$defaultPropertiesFilePath = Join-Path $sourcesDirectory "sonar-project.properties"
 		Mock Test-Path -ModuleName Build { return $true }
 		Mock Invoke-Process -ModuleName Build { }
 
@@ -25,8 +26,9 @@ Describe "Invoke-SonarRunner" {
 			Assert-MockCalled Invoke-Process -ModuleName Build -ParameterFilter { $WorkingDirectory -eq $sourcesDirectory }
         }
 
-        #It "should invoke sonar-runner with default properties-file" {
-        #}
+        It "should invoke sonar-runner with default properties-file" {
+			Assert-MockCalled Invoke-Process -ModuleName Build -ParameterFilter { $Arguments -eq "-Dproject.settings='$defaultPropertiesFilePath'" }
+        }
     }
 
 	Context "when sonar-runner not present" {
@@ -47,6 +49,7 @@ Describe "Invoke-SonarRunner" {
 		$defaultPropertiesFilePath = Join-Path $sourcesDirectory "sonar-project.properties"
 		Mock Test-Path -ModuleName Build { return $true }
 		Mock Test-Path -ModuleName Build { return $false } -ParameterFilter { $Path -eq $defaultPropertiesFilePath }
+		Mock Get-ChildItem -ModuleName Build { return @{} }
 		Mock Invoke-Process -ModuleName Build { }
 
 		Invoke-SonarRunner -SourcesDirectory $sourcesDirectory
@@ -69,10 +72,31 @@ Describe "Invoke-SonarRunner" {
         }
     }
 
-    #Context "when sonar-properties provided" {
-    #    It "should invoke sonar-runner with provided sonar-properties file" {
-    #    }
-    #}
+    Context "when sonar-properties provided" {
+		$sourcesDirectory = "TestDrive:\src"
+		$propertiesFileName = "project.sonar"
+		$propertiesFilePath = Join-Path $sourcesDirectory $propertiesFileName
+		Mock Test-Path -ModuleName Build { return $true }
+		Mock Invoke-Process -ModuleName Build { }
+
+		Invoke-SonarRunner -SourcesDirectory $sourcesDirectory -SonarPropertiesFileName $propertiesFileName
+
+        It "should invoke sonar-runner" {
+			Assert-MockCalled Invoke-Process -ModuleName Build
+        }
+
+        It "should invoke sonar-runner with default file-path" {
+			Assert-MockCalled Invoke-Process -ModuleName Build -ParameterFilter { $FilePath -eq "C:\sonar\bin\sonar-runner.bat" }
+        }
+
+        It "should invoke sonar-runner with sources-directory as working-directory" {
+			Assert-MockCalled Invoke-Process -ModuleName Build -ParameterFilter { $WorkingDirectory -eq $sourcesDirectory }
+        }
+
+        It "should invoke sonar-runner with provided sonar-properties file" {
+			Assert-MockCalled Invoke-Process -ModuleName Build -ParameterFilter { $Arguments -eq "-Dproject.settings='$propertiesFilePath'" }
+        }
+    }
 
     Context "when called with WhatIf" {
 		$sourcesDirectory = "TestDrive:\src"

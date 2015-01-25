@@ -516,12 +516,22 @@ function Invoke-SonarRunner {
     $SonarRunnerBinPath = Join-Path $SonarRunnerBinDirectory "sonar-runner.bat"
     Write-Verbose "Using sonar-runner path '$SonarRunnerBinPath'"
 
-    $SonarPropertiesFilePath = Join-Path $SourcesDirectory $SonarPropertiesFileName
-    Write-Verbose "Using sonar project-configuration path '$SonarPropertiesFilePath'"
-
     if (-not (Test-Path $SonarRunnerBinPath)) {
         Write-Verbose "Sonar-sunner not installed"
         return
+    }
+
+    $SonarPropertiesFilePath = Join-Path $SourcesDirectory $SonarPropertiesFileName
+    Write-Verbose "Using sonar project-configuration path '$SonarPropertiesFilePath'"
+
+    if (-not (Test-Path $SonarPropertiesFilePath)) {
+        Write-Verbose "Sonar project-configuration not found in root, looking deeper"
+
+		$files = Get-ChildItem -Path $SourcesDirectory -Recurse -Include $SonarPropertiesFileName
+		if ($files.Count -eq 1) {
+			$SonarPropertiesFilePath = ($files | Select -First).FullName
+		    Write-Verbose "Using sonar project-configuration path '$SonarPropertiesFilePath'"
+		}
     }
 
     if (-not (Test-Path $SonarPropertiesFilePath)) {
@@ -530,7 +540,13 @@ function Invoke-SonarRunner {
     }
 
     if (-not $WhatIf) {
-        Invoke-Process -FilePath $SonarRunnerBinPath -WorkingDirectory $SourcesDirectory
+		if (Test-Path $SonarPropertiesFilePath) {
+			$workingDirectory = Split-Path $SonarPropertiesFilePath
+			Invoke-Process -FilePath $SonarRunnerBinPath -WorkingDirectory $workingDirectory -Arguments "-Dproject.settings='$SonarPropertiesFilePath'"
+		}
+		else {
+			Invoke-Process -FilePath $SonarRunnerBinPath -WorkingDirectory $SourcesDirectory
+		}
     }
     else {
         Write-Verbose "What if..., analysis skipped"
