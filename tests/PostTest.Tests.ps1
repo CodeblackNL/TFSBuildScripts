@@ -30,7 +30,7 @@ Describe "PostTest" {
     Context "when called from the build-workflow" {
         Mock Get-Build { return @{ CompilationStatus = "Succeeded"; TestStatus = "Succeeded" } }
 
-        . $sut -NuspecFilePath $filePath -BasePath $baseFolder -OutputPath $outputFolder -Source $packageSource -ApiKey $key -Push
+        . $sut -NuspecFilePath $filePath -BasePath $baseFolder -OutputPath $outputFolder -Source $packageSource -ApiKey $key -Package -Push
 
         It "should import the Build module" {
             Assert-MockCalled Import-Module
@@ -75,10 +75,28 @@ Describe "PostTest" {
 		}
     }
 
-    Context "when push is not enabled" {
+    Context "when package is not enabled" {
         Mock Get-Build { return @{ CompilationStatus = "Succeeded"; TestStatus = "Succeeded" } }
 
         . $sut -Source $packageSource -ApiKey $key
+
+        It "should not create package(s)" {
+            Assert-MockCalled New-NuGetPackage -Times 0
+		}
+
+        It "should not push package(s)" {
+            Assert-MockCalled Push-NuGetPackage -Times 0
+		}
+	}
+
+    Context "when only push is not enabled" {
+        Mock Get-Build { return @{ CompilationStatus = "Succeeded"; TestStatus = "Succeeded" } }
+
+        . $sut -Source $packageSource -ApiKey $key -Package
+
+        It "should create package(s)" {
+            Assert-MockCalled New-NuGetPackage
+		}
 
         It "should not push package(s)" {
             Assert-MockCalled Push-NuGetPackage -Times 0

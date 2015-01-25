@@ -10,6 +10,7 @@
     Author: Jeroen Swart
     Versions:
     - 1.0.0  07-12-2014  Initial version
+    - 1.1.0  25-01-2015  Add parameter to explicitly enable packaging
 
 .PARAMETER  NuspecFilePath
     Specifies the file-path for one or more nuspec-files, relative to the sources-directory.
@@ -47,6 +48,8 @@ param (
     [Parameter(Mandatory = $false)]
     [string]$ApiKey,
     [Parameter(Mandatory = $false)]
+    [switch]$Package = $false,
+    [Parameter(Mandatory = $false)]
     [switch]$Push = $false,
     [Parameter(Mandatory = $false)]
     [switch]$Disabled = $false
@@ -66,22 +69,27 @@ if (-not $Disabled) {
     $build = Get-Build -CollectionUri $collectionUri -BuildUri $buildUri
     if ($build -and $build.CompilationStatus -eq "Succeeded" -and $build.TestStatus -eq "Succeeded") {
 
-        New-NuGetPackage -SourcesDirectory $sourcesDirectory `
-                         -BinariesDirectory $binariesDirectory `
-                         -DropDirectory $dropDirectory `
-                         -NuspecFilePath $NuspecFilePath `
-                         -BasePath $BasePath `
-                         -OutputPath $OutputPath `
-                         -AdditionalPackOptions $AdditionalPackOptions
+		if ($Package) {
+			New-NuGetPackage -SourcesDirectory $sourcesDirectory `
+							 -BinariesDirectory $binariesDirectory `
+							 -DropDirectory $dropDirectory `
+							 -NuspecFilePath $NuspecFilePath `
+							 -BasePath $BasePath `
+							 -OutputPath $OutputPath `
+							 -AdditionalPackOptions $AdditionalPackOptions
 
-        if ($Push) {
-            Push-NuGetPackage -DropDirectory $dropDirectory `
-			                  -OutputPath $OutputPath `
-                              -Source $Source `
-                              -ApiKey $ApiKey
-        }
+			if ($Push) {
+				Push-NuGetPackage -DropDirectory $dropDirectory `
+								  -OutputPath $OutputPath `
+								  -Source $Source `
+								  -ApiKey $ApiKey
+			}
+			else {
+				Write-Verbose "Push not enabled; pushing of NuGet-package(s) skipped"
+			}
+		}
 		else {
-		    Write-Verbose "Push not enabled; pushing of NuGet-package(s) skipped"
+			Write-Verbose "Package not enabled; packaging and pushing of NuGet-package(s) skipped"
 		}
     }
 }
