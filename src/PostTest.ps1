@@ -11,6 +11,7 @@
     Versions:
     - 1.0.0  07-12-2014  Initial version
     - 1.1.0  25-01-2015  Add parameter to explicitly enable packaging
+    - 1.2.0  25-01-2015  Add Invoke-Release
 
 .PARAMETER  NuspecFilePath
     Specifies the file-path for one or more nuspec-files, relative to the sources-directory.
@@ -51,6 +52,18 @@ param (
     [switch]$Package = $false,
     [Parameter(Mandatory = $false)]
     [switch]$Push = $false,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$Release = $false,
+    [Parameter(Mandatory = $false)]
+    [string]$TargetStageName,
+    [Parameter(Mandatory = $false)]
+    [string]$RMServer,
+    [Parameter(Mandatory = $false)]
+    [string]$RMPort = 1000,  
+    [Parameter(Mandatory = $false)]
+    [string]$TeamFoundationServerUrl,
+
     [Parameter(Mandatory = $false)]
     [switch]$Disabled = $false
 )
@@ -64,33 +77,48 @@ $binariesDirectory = Get-EnvironmentVariable "TF_BUILD_BINARIESDIRECTORY" -Verbo
 $dropDirectory = Get-EnvironmentVariable "TF_BUILD_DROPLOCATION" -Verbose:$VerbosePreference
 $collectionUri = Get-EnvironmentVariable "TF_BUILD_COLLECTIONURI" -Verbose:$VerbosePreference
 $buildUri = Get-EnvironmentVariable "TF_BUILD_BUILDURI" -Verbose:$VerbosePreference
+$buildDefinitionName = Get-EnvironmentVariable "TF_BUILD_BUILDDEFINITIONNAME" -Verbose:$VerbosePreference
+$buildNumber = Get-EnvironmentVariable "TF_BUILD_BUILDNUMBER" -Verbose:$VerbosePreference
 
 if (-not $Disabled) {
     $build = Get-Build -CollectionUri $collectionUri -BuildUri $buildUri
     if ($build -and $build.CompilationStatus -eq "Succeeded" -and $build.TestStatus -eq "Succeeded") {
 
-		if ($Package) {
-			New-NuGetPackage -SourcesDirectory $sourcesDirectory `
-							 -BinariesDirectory $binariesDirectory `
-							 -DropDirectory $dropDirectory `
-							 -NuspecFilePath $NuspecFilePath `
-							 -BasePath $BasePath `
-							 -OutputPath $OutputPath `
-							 -AdditionalPackOptions $AdditionalPackOptions
+        if ($Release) {
+            if (-not $TeamFoundationServerUrl) {
+                $TeamFoundationServerUrl = $collectionUri
+            }
 
-			if ($Push) {
-				Push-NuGetPackage -DropDirectory $dropDirectory `
-								  -OutputPath $OutputPath `
-								  -Source $Source `
-								  -ApiKey $ApiKey
-			}
-			else {
-				Write-Verbose "Push not enabled; pushing of NuGet-package(s) skipped"
-			}
-		}
-		else {
-			Write-Verbose "Package not enabled; packaging and pushing of NuGet-package(s) skipped"
-		}
+            Invoke-Release -RMServer $RMServer -RMPort $RMPort `
+                           -TeamFoundationServerUrl $TeamFoundationServerUrl `
+                           -TeamProjectName $build.TeamProject `
+                           -BuildDefinitionName $buildDefinitionName `
+                           -BuildNumber $buildNumber `
+                           -TargetStageName $TargetStageName
+        }
+
+        if ($Package) {
+            New-NuGetPackage -SourcesDirectory $sourcesDirectory `
+                             -BinariesDirectory $binariesDirectory `
+                             -DropDirectory $dropDirectory `
+                             -NuspecFilePath $NuspecFilePath `
+                             -BasePath $BasePath `
+                             -OutputPath $OutputPath `
+                             -AdditionalPackOptions $AdditionalPackOptions
+
+            if ($Push) {
+                Push-NuGetPackage -DropDirectory $dropDirectory `
+                                  -OutputPath $OutputPath `
+                                  -Source $Source `
+                                  -ApiKey $ApiKey
+            }
+            else {
+                Write-Verbose "Push not enabled; pushing of NuGet-package(s) skipped"
+            }
+        }
+        else {
+            Write-Verbose "Package not enabled; packaging and pushing of NuGet-package(s) skipped"
+        }
     }
 }
 else {

@@ -15,6 +15,8 @@
     - 1.2.1  10-12-2014  Fix package versioning for NuGet; it does not fully support SemVer
     - 1.3.0  12-12-2014  Added package packaging & publishing
     - 1.3.1  30-12-2014  Allow an explicit version to reference the version in the build-number
+    - 1.3.2  25-01-2015  Fix Invoke-SonarRunner; actually use the SonarPropertiesFileName parameter
+    - 1.4.0  25-01-2015  Add Invoke-Release
 #>
 
 set-alias ?: Invoke-Ternary -Option AllScope -Description "PSCX filter alias"
@@ -527,11 +529,11 @@ function Invoke-SonarRunner {
     if (-not (Test-Path $SonarPropertiesFilePath)) {
         Write-Verbose "Sonar project-configuration not found in root, looking deeper"
 
-		$files = Get-ChildItem -Path $SourcesDirectory -Recurse -Include $SonarPropertiesFileName
-		if ($files.Count -eq 1) {
-			$SonarPropertiesFilePath = ($files | Select -First).FullName
-		    Write-Verbose "Using sonar project-configuration path '$SonarPropertiesFilePath'"
-		}
+        $files = Get-ChildItem -Path $SourcesDirectory -Recurse -Include $SonarPropertiesFileName
+        if ($files.Count -eq 1) {
+            $SonarPropertiesFilePath = ($files | Select -First).FullName
+            Write-Verbose "Using sonar project-configuration path '$SonarPropertiesFilePath'"
+        }
     }
 
     if (-not (Test-Path $SonarPropertiesFilePath)) {
@@ -540,13 +542,13 @@ function Invoke-SonarRunner {
     }
 
     if (-not $WhatIf) {
-		if (Test-Path $SonarPropertiesFilePath) {
-			$workingDirectory = Split-Path $SonarPropertiesFilePath
-			Invoke-Process -FilePath $SonarRunnerBinPath -WorkingDirectory $workingDirectory -Arguments "-Dproject.settings='$SonarPropertiesFilePath'"
-		}
-		else {
-			Invoke-Process -FilePath $SonarRunnerBinPath -WorkingDirectory $SourcesDirectory
-		}
+        if (Test-Path $SonarPropertiesFilePath) {
+            $workingDirectory = Split-Path $SonarPropertiesFilePath
+            Invoke-Process -FilePath $SonarRunnerBinPath -WorkingDirectory $workingDirectory -Arguments "-Dproject.settings='$SonarPropertiesFilePath'"
+        }
+        else {
+            Invoke-Process -FilePath $SonarRunnerBinPath -WorkingDirectory $SourcesDirectory
+        }
     }
     else {
         Write-Verbose "What if..., analysis skipped"
@@ -690,14 +692,14 @@ function New-NuGetPackage {
             $fullBasePath = (Join-Path $DropDirectory $BasePath).TrimEnd('\')
         }
     }
-	if (-not (Test-Path $fullBasePath)) {
-		New-Item $fullBasePath -ItemType Container -ErrorAction SilentlyContinue | Out-Null
-	}
+    if (-not (Test-Path $fullBasePath)) {
+        New-Item $fullBasePath -ItemType Container -ErrorAction SilentlyContinue | Out-Null
+    }
 
     $fullOutputPath = (Join-Path $DropDirectory $OutputPath).TrimEnd('\')
-	if (-not (Test-Path $fullOutputPath)) {
-		New-Item $fullOutputPath -ItemType Container -ErrorAction SilentlyContinue | Out-Null
-	}
+    if (-not (Test-Path $fullOutputPath)) {
+        New-Item $fullOutputPath -ItemType Container -ErrorAction SilentlyContinue | Out-Null
+    }
 
     $nuspecFilePaths = @()
 
@@ -717,8 +719,8 @@ function New-NuGetPackage {
         foreach ($path in $nuspecFilePaths) {
             Write-Verbose "Creating package for '$path'"
 
-			[xml]$nuspecContent = Get-Content -Path $Path
-			$version = $nuspecContent.package.metadata.version
+            [xml]$nuspecContent = Get-Content -Path $Path
+            $version = $nuspecContent.package.metadata.version
 
             $scriptFileName = "$([System.IO.Path]::GetFileNameWithoutExtension($path)).ps1"
             $scriptPath = Join-Path (Split-Path $path) $scriptFileName
@@ -726,18 +728,18 @@ function New-NuGetPackage {
             if (Test-Path $scriptPath) {
                 Write-Verbose "Executing pre-package script '$scriptPath'"
 
-		        if (-not $WhatIf) {
-					try {
-						& $scriptPath $SourcesDirectory $BinariesDirectory $DropDirectory $fullBasePath
-					}
-					catch {
-						Write-Error "Error executing pre-package script for '$path'"
-						Write-Error $_
-					}
-	            }
-				else {
-					Write-Verbose "What if..., pre-package script execution skipped"
-				}
+                if (-not $WhatIf) {
+                    try {
+                        & $scriptPath $SourcesDirectory $BinariesDirectory $DropDirectory $fullBasePath
+                    }
+                    catch {
+                        Write-Error "Error executing pre-package script for '$path'"
+                        Write-Error $_
+                    }
+                }
+                else {
+                    Write-Verbose "What if..., pre-package script execution skipped"
+                }
             }
 
             $nugetFilePath = Get-NuGetFilePath (Split-Path $path),$PSScriptRoot,$SourcesDirectory
@@ -750,7 +752,7 @@ function New-NuGetPackage {
                 }
                 Write-Verbose "With arguments '$arguments'"
 
-	            if (-not $WhatIf) {
+                if (-not $WhatIf) {
                     Invoke-Process -FilePath $nugetFilePath `
                                     -WorkingDirectory $fullBasePath `
                                     -Arguments $arguments
@@ -759,10 +761,10 @@ function New-NuGetPackage {
                         NuspecFilePath = $path
                         NugetFilePath = $nugetFilePath
                     } | Out-File (Join-Path $fullOutputPath "$([System.IO.Path]::GetFileNameWithoutExtension($path)).$version.json")
-			    }
-			    else {
-				    Write-Verbose "What if..., packaging skipped"
-			    }
+                }
+                else {
+                    Write-Verbose "What if..., packaging skipped"
+                }
             }
             else {
                 Write-Error "'nuget.exe' is missing. Please add it to the location of the nuspec-file or build-scripts."
@@ -818,7 +820,7 @@ function Push-NuGetPackage {
     if (-not $Source) {
         Write-Verbose "No source provided, pushing skipped"
         return
-	}
+    }
 
     if (-not $OutputPath) {
         $OutputPath = "Package"
@@ -833,34 +835,94 @@ function Push-NuGetPackage {
         try {
             $dataFileName = "$([System.IO.Path]::GetFileNameWithoutExtension($nupkgFilePath)).json"
             $dataFilePath = Join-Path (Split-Path $nupkgFilePath) $dataFileName
-			if (Test-Path $dataFilePath) {
-				$data = ConvertFrom-Json (Get-Content $dataFilePath -Raw)
+            if (Test-Path $dataFilePath) {
+                $data = ConvertFrom-Json (Get-Content $dataFilePath -Raw)
 
-				$nugetFilePath = $data.NugetFilePath
-				if ($nugetFilePath) {
-					Write-Verbose "Using '$nugetFilePath'"
+                $nugetFilePath = $data.NugetFilePath
+                if ($nugetFilePath) {
+                    Write-Verbose "Using '$nugetFilePath'"
 
-					$arguments = "push `"$nupkgFilePath`" $ApiKey -Source `"$Source`""
+                    $arguments = "push `"$nupkgFilePath`" $ApiKey -Source `"$Source`""
                     if ($VerbosePreference -eq "Continue") {
                         $arguments += " -Verbosity Detailed"
                     }
-					Write-Verbose "With arguments '$arguments'"
+                    Write-Verbose "With arguments '$arguments'"
 
-					if (-not $WhatIf) {
-						Invoke-Process -FilePath $nugetFilePath `
-									   -WorkingDirectory $fullOutputPath `
-									   -Arguments $arguments
-					}
-				}
-			}
-	        else {
-	            Write-Verbose "Unable to load data-file for package '$nupkgFilePath', pushing of package skipped"
-	        }
+                    if (-not $WhatIf) {
+                        Invoke-Process -FilePath $nugetFilePath `
+                                       -WorkingDirectory $fullOutputPath `
+                                       -Arguments $arguments
+                    }
+                }
+            }
+            else {
+                Write-Verbose "Unable to load data-file for package '$nupkgFilePath', pushing of package skipped"
+            }
         }
         catch {
             Write-Error "Failure while pushing package '$nupkgFilePath' to '$Source'"
             Write-Error $_
         }
+    }
+}
+
+function Invoke-Release {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RMServer,
+        [Parameter(Mandatory = $false)]
+        [string]$RMPort = 1000,  
+        [Parameter(Mandatory = $true)]
+        [string]$TeamFoundationServerUrl,
+        [Parameter(Mandatory = $true)]
+        [string]$TeamProjectName,
+        [Parameter(Mandatory = $true)]
+        [string]$BuildDefinitionName,
+        [Parameter(Mandatory = $true)]
+        [string]$BuildNumber,
+        [Parameter(Mandatory = $false)]
+        [string]$TargetStageName
+    )
+
+    Write-Verbose "Executing with the following parameters:`n"
+    Write-Verbose "  RMserver Name: '$RMServer'"
+    Write-Verbose "  Port number: '$RMPort'"
+    Write-Verbose "  Team Foundation Server URL: '$TeamFoundationServerUrl'"
+    Write-Verbose "  Team Project Name: '$TeamProjectName'"
+    Write-Verbose "  Build Definition Name: '$BuildDefinitionName'"
+    Write-Verbose "  Build Number: '$BuildNumber'"
+    Write-Verbose "  Target Stage Name: '$TargetStageName'"
+
+    $server = [System.Uri]::EscapeDataString($TeamFoundationServerUrl)
+    $project = [System.Uri]::EscapeDataString($TeamProjectName)
+    $definition = [System.Uri]::EscapeDataString($BuildDefinitionName)
+    $build = [System.Uri]::EscapeDataString($BuildNumber)
+    $targetStage = [System.Uri]::EscapeDataString($TargetStageName)
+
+    $orchestratorService = "http://$($RMServer):$($RMPort)/account/releaseManagementService/_apis/releaseManagement/OrchestratorService"
+
+    try {
+	    $url = "$orchestratorService/InitiateReleaseFromBuild?teamFoundationServerUrl=$server&teamProject=$project&buildDefinition=$definition&buildNumber=$build&targetStageName=$targetStage"
+        Write-Verbose "Executing the following API call: '$url'"
+        $releaseId = Invoke-RestMethod -Uri $url -Method Get
+        Write-Verbose "Created release '$releaseId'"
+
+        $url = "$orchestratorService/ReleaseStatus?releaseId=$releaseId"
+        Write-Verbose "Executing the following API call: '$url'"
+        $releaseStatus = Invoke-RestMethod -Uri $url -Method Get
+        switch ($releaseStatus) {
+            "2" { Write-Verbose "Status 'InProgress'" }
+            "3" { Write-Verbose "Status 'Released'" }
+            "4" { Write-Verbose "Status 'Stopped'" }
+            "5" { Write-Verbose "Status 'Rejected'" }
+            "6" { Write-Verbose "Status 'Abandoned'" }
+            default { Write-Verbose "Status unknown" }
+        }
+    }
+    catch {
+        Write-Verbose "ERROR`n$_"
+        throw
     }
 }
 
@@ -871,3 +933,4 @@ Export-ModuleMember -Function Invoke-SonarRunner
 Export-ModuleMember -Function Get-Build
 Export-ModuleMember -Function New-NuGetPackage
 Export-ModuleMember -Function Push-NuGetPackage
+Export-ModuleMember -Function Invoke-Release
