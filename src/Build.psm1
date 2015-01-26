@@ -893,7 +893,9 @@ function Invoke-Release {
         [Parameter(Mandatory = $true)]
         [string]$BuildNumber,
         [Parameter(Mandatory = $false)]
-        [string]$TargetStageName
+        [string]$TargetStageName,
+        [Parameter(Mandatory = $false)]
+        [switch]$WhatIf = $false
     )
 
     Write-Verbose "Executing with the following parameters:`n"
@@ -916,20 +918,26 @@ function Invoke-Release {
     try {
 	    $url = "$orchestratorService/InitiateReleaseFromBuild?teamFoundationServerUrl=$server&teamProject=$project&buildDefinition=$definition&buildNumber=$build&targetStageName=$targetStage"
         Write-Verbose "Executing the following API call: '$url'"
-        $releaseId = Invoke-GetRest -Uri $url
-        Write-Verbose "Created release '$releaseId'"
 
-        $url = "$orchestratorService/ReleaseStatus?releaseId=$releaseId"
-        Write-Verbose "Executing the following API call: '$url'"
-        $releaseStatus = Invoke-GetRest -Uri $url
-        switch ($releaseStatus) {
-            "2" { Write-Verbose "Status 'InProgress'" }
-            "3" { Write-Verbose "Status 'Released'" }
-            "4" { Write-Verbose "Status 'Stopped'" }
-            "5" { Write-Verbose "Status 'Rejected'" }
-            "6" { Write-Verbose "Status 'Abandoned'" }
-            default { Write-Verbose "Status unknown" }
-        }
+        if (-not $WhatIf) {
+			$releaseId = Invoke-GetRest -Uri $url
+			Write-Verbose "Created release '$releaseId'"
+
+			$url = "$orchestratorService/ReleaseStatus?releaseId=$releaseId"
+			Write-Verbose "Executing the following API call: '$url'"
+			$releaseStatus = Invoke-GetRest -Uri $url
+			switch ($releaseStatus) {
+				"2" { Write-Verbose "Status 'InProgress'" }
+				"3" { Write-Verbose "Status 'Released'" }
+				"4" { Write-Verbose "Status 'Stopped'" }
+				"5" { Write-Verbose "Status 'Rejected'" }
+				"6" { Write-Verbose "Status 'Abandoned'" }
+				default { Write-Verbose "Status unknown" }
+			}
+                }
+                else {
+                    Write-Verbose "What if..., releasing skipped"
+                }
     }
     catch {
         Write-Verbose "ERROR`n$_"

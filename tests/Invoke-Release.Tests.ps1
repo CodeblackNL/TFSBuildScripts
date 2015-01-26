@@ -40,4 +40,25 @@ Describe "Invoke-Release" {
             Assert-MockCalled Invoke-GetRest -ModuleName Build -ParameterFilter { $Uri -eq $expectedStatusUrl }
         }
     }
+
+    Context "when called with WhatIf" {
+        $rmServer = "rm-test"
+        $tfsUrl = "http://tfs-test:8080/tfs/DefaultCollection"
+        $teamProjectName = "test-project"
+        $buildDefinitionName = "test-build"
+        $buildNumber = "test-build_1.2.3.4"
+        $targetStageName = "Production"
+
+        Mock -ModuleName Build -CommandName Invoke-GetRest -MockWith { }
+
+        Invoke-Release -RMServer $rmServer `
+                       -TeamFoundationServerUrl $tfsUrl -TeamProjectName $teamProjectName `
+                       -BuildDefinitionName $buildDefinitionName -BuildNumber $buildNumber `
+                       -TargetStageName $targetStageName `
+					   -WhatIf
+
+        It "should not call Invoke-Process" {
+			Assert-MockCalled Invoke-GetRest -ModuleName Build -Times 0
+        }
+    }
 }

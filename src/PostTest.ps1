@@ -52,7 +52,6 @@ param (
     [switch]$Package = $false,
     [Parameter(Mandatory = $false)]
     [switch]$Push = $false,
-
     [Parameter(Mandatory = $false)]
     [switch]$Release = $false,
     [Parameter(Mandatory = $false)]
@@ -63,7 +62,6 @@ param (
     [string]$RMPort = 1000,  
     [Parameter(Mandatory = $false)]
     [string]$TeamFoundationServerUrl,
-
     [Parameter(Mandatory = $false)]
     [switch]$Disabled = $false
 )
