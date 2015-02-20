@@ -17,6 +17,7 @@
     - 1.3.1  30-12-2014  Allow an explicit version to reference the version in the build-number
     - 1.3.2  25-01-2015  Fix Invoke-SonarRunner; actually use the SonarPropertiesFileName parameter
     - 1.4.0  25-01-2015  Add Invoke-Release
+    - 1.4.1  20-02-2015  Fix typo in Invoke-SonarRunner
 #>
 
 set-alias ?: Invoke-Ternary -Option AllScope -Description "PSCX filter alias"
@@ -531,7 +532,7 @@ function Invoke-SonarRunner {
 
         $files = Get-ChildItem -Path $SourcesDirectory -Recurse -Include $SonarPropertiesFileName
         if ($files.Count -eq 1) {
-            $SonarPropertiesFilePath = ($files | Select -First).FullName
+            $SonarPropertiesFilePath = ($files | Select -First 1).FullName
             Write-Verbose "Using sonar project-configuration path '$SonarPropertiesFilePath'"
         }
     }
