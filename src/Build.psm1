@@ -18,6 +18,7 @@
     - 1.3.2  25-01-2015  Fix Invoke-SonarRunner; actually use the SonarPropertiesFileName parameter
     - 1.4.0  25-01-2015  Add Invoke-Release
     - 1.4.1  20-02-2015  Fix typo in Invoke-SonarRunner
+    - 1.5.0  03-03-2015  Add versioning of dependencies in nuspec-files
 #>
 
 set-alias ?: Invoke-Ternary -Option AllScope -Description "PSCX filter alias"
@@ -370,6 +371,12 @@ function Update-Version {
                     [xml]$fileContent = Get-Content -Path $file
 
                     $fileContent.package.metadata.version = $packageVersion
+
+					foreach ($dependency in $fileContent.package.metadata.dependencies.ChildNodes) {
+						if ($dependency.version -match "{version}") {
+							$dependency.version = $dependency.version -replace "{version}", $packageVersion
+						}
+					}
 
                     $fileContent.Save($file)
                 }
