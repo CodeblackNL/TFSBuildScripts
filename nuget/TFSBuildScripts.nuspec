@@ -8,16 +8,13 @@
     <projectUrl>https://github.com/CodeblackNL/TFSBuildScripts</projectUrl>
     <licenseUrl>https://github.com/CodeblackNL/TFSBuildScripts/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>TFSBuildScripts provides PowerShell scripts that can be used to extend TFS Build Workflows.</description>
+    <description>TFSBuildScripts provides PowerShell scripts that can be used to extend TFS builds.</description>
     <releaseNotes>https://github.com/CodeblackNL/TFSBuildScripts/wiki/Changelog</releaseNotes>
-    <copyright>Copyright 2014-2015</copyright>
-    <tags>TFS TFS2013 TFS2015 Build Script PowerShell</tags>
+    <copyright>Copyright 2014-2017</copyright>
+    <tags>TFS TFS2015 TFS2017 Build Script PowerShell</tags>
   </metadata>
   <files>
-    <file src="\tools\**\*.*" target="tools" />
-    <file src="..\src\Build.psm1" target="tools\Build.psm1" />
-    <file src="..\src\PreBuild.ps1" target="tools\PreBuild.ps1" />
-    <file src="..\src\PostBuild.ps1" target="tools\PostBuild.ps1" />
-    <file src="..\src\PostTest.ps1" target="tools\PostTest.ps1" />
+    <file src="tools\**\*.*" target="tools" />
+    <file src="..\src\Update-Version.ps1" target="scripts\Update-Version.ps1" />
   </files>
 </package>
