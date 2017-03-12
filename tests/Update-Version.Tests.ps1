@@ -2,9 +2,6 @@
 ## <copyright file="Update-Version.Tests.ps1">(c) https://github.com/CodeblackNL/TFSBuildScripts. See https://github.com/CodeblackNL/TFSBuildScripts/blob/master/LICENSE. </copyright>
 ##-----------------------------------------------------------------------
 
-Remove-Module "Build" -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\src\Build.psm1"
-
 $AssemblyInfo_CS = @'
 // here comes the assembly-version
 [assembly: AssemblyVersion("1.0.0.0")]
@@ -86,1756 +83,1814 @@ function Get-PackageVersion {
     return $version
 }
 
-Describe "Update-Version" {
+Describe 'Update-Version' {
     $now = [DateTime]::Now
     $julian = "$($now.ToString("yy"))$($now.DayOfYear.ToString('000'))"
 
-    Context "when version is explicitly provided in .NET format" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $nuspecPath = "TestDrive:\package.nuspec"
-        $expectedVersion = "2.3.1.4"
+    Context 'when version is explicitly provided in .NET format' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $nuspecPath = 'TestDrive:\package.nuspec'
+        $expectedVersion = '2.3.1.4'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
         Set-Content -Path $nuspecPath -Value $Package_Nuspec
 
-        It "should use this version for the assembly-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $expectedVersion -AssemblyVersionPattern "#.#.#.#"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
+        It 'should use this version for the assembly-version' {
+            ..\src\Update-Version.ps1 -Version $expectedVersion -AssemblyVersionPattern '#.#.#.#'
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should use this version for the file-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $expectedVersion -FileVersionPattern "#.#.#.#"
+        It 'should use this version for the file-version' {
+            ..\src\Update-Version.ps1 -Version $expectedVersion -FileVersionPattern '#.#.#.#'
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should use this version for the product-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $expectedVersion -ProductVersionPattern "#.#.#.#"
+        It 'should use this version for the product-version' {
+            ..\src\Update-Version.ps1 -Version $expectedVersion -ProductVersionPattern '#.#.#.#'
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should use this version for the package-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $expectedVersion -PackageVersionPattern "#.#.#.#"
+        It 'should use this version for the package-version' {
+            ..\src\Update-Version.ps1 -Version $expectedVersion -PackageVersionPattern '#.#.#.#'
 
             $actualVersion = Get-PackageVersion -Path $nuspecPath
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when version is explicitly provided in SemVer format" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $nuspecPath = "TestDrive:\package.nuspec"
-        $version = "2.3.1-ci42+12345.0"
+    Context 'when version is explicitly provided in SemVer format' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $nuspecPath = 'TestDrive:\package.nuspec'
+        $version = '2.3.1-ci42+12345.0'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
         Set-Content -Path $nuspecPath -Value $Package_Nuspec
 
-        It "should use this version for the assembly-version" {
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
+        It 'should use this version for the assembly-version' {
             # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern "#.#.#.0"
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern '#.#.#.0'
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
-            $actualVersion | Should Be "2.3.1.0"
+            $actualVersion | Should Be '2.3.1.0'
         }
 
-        It "should use this version for the file-version" {
+        It 'should use this version for the file-version' {
             # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern "#.#.#.0"
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern '#.#.#.0'
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
-            $actualVersion | Should Be "2.3.1.0"
+            $actualVersion | Should Be '2.3.1.0'
         }
 
-        It "should use this version for the product-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern "#.#.###"
+        It 'should use this version for the product-version' {
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern '#.#.###'
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
-            $actualVersion | Should Be "2.3.1-ci42+12345.0"
+            $actualVersion | Should Be '2.3.1-ci42+12345.0'
         }
 
-        It "should use this version for the package-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern "#.#.###"
+        It 'should use this version for the package-version' {
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern '#.#.###'
 
             # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
             $actualVersion = Get-PackageVersion -Path $nuspecPath
-            $actualVersion | Should Be "2.3.1-ci42-12345-0"
+            $actualVersion | Should Be '2.3.1-ci42-12345-0'
         }
     }
 
-    Context "when version is explicitely provided with formatting" {
+    Context 'when version is explicitely provided with formatting' {
         # NOTE: since only the product-version allows all versioning-patterns,
         #       the version-patterns in this context are only tested against the product-version;
         #       it is assumed (for now) that these patterns will work for the other versions as well
-        $buildNumber = "Test_2014-11-27_2.3.1.7"
-        $path = "TestDrive:\AssemblyInfo.cs"
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\AssemblyInfo.cs'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
 
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
         It "should return correct version when pattern is '1.2.J.B'" {
-            $versionPattern = "1.2.J.B"
+            $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.M.D.B'" {
-            $versionPattern = "YYYY.M.D.B"
+            $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
-            $versionPattern = "YYYY.MM.DD.BB"
+            $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
-            $versionPattern = "YYYY.MM.DD.BBB"
+            $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MMDD.B'" {
-            $versionPattern = "1.YY.MMDD.B"
+            $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MD.B'" {
-            $buildNumber = "Test_2014-11-27_2.3.1.8"
-            $versionPattern = "1.YY.MD.B"
+            $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
-            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).8"
+            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBB'" {
-            $versionPattern = "1.YY.MM.DDBB"
+            $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
-            $versionPattern = "1.YY.MM.DDBBB"
+            $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
-            $versionPattern = "1.2.3-ci+J.B"
+            $versionPattern = '1.2.3-ci+J.B'
             $expectedVersion = "1.2.3-ci+$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
-            $versionPattern = "1.2.3-ci+J.BB"
+            $versionPattern = '1.2.3-ci+J.BB'
             $expectedVersion = "1.2.3-ci+$julian.07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
-            $versionPattern = "1.2.3-ci+J.BBB"
+            $versionPattern = '1.2.3-ci+J.BBB'
             $expectedVersion = "1.2.3-ci+$julian.007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
-            $versionPattern = "1.2.3-ciJ-B"
+            $versionPattern = '1.2.3-ciJ-B'
             $expectedVersion = "1.2.3-ci$julian-7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
-            $versionPattern = "1.2.3-ciJ-BB"
+            $versionPattern = '1.2.3-ciJ-BB'
             $expectedVersion = "1.2.3-ci$julian-07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
-            $versionPattern = "1.2.3-ciJ-BBB"
+            $versionPattern = '1.2.3-ciJ-BBB'
             $expectedVersion = "1.2.3-ci$julian-007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '#.#.#.#'" {
-            $versionPattern = "#.#.#.#"
-            $expectedVersion = "2.3.1.7"
+            $versionPattern = '#.#.#.#'
+            $expectedVersion = '2.3.1.7'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '#.#.#.0'" {
-            $versionPattern = "#.#.#.0"
-            $expectedVersion = "2.3.1.0"
+            $versionPattern = '#.#.#.0'
+            $expectedVersion = '2.3.1.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '#.#.0.0'" {
-            $versionPattern = "#.#.0.0"
-            $expectedVersion = "2.3.0.0"
+            $versionPattern = '#.#.0.0'
+            $expectedVersion = '2.3.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '#.0.0.0'" {
-            $versionPattern = "#.0.0.0"
-            $expectedVersion = "2.0.0.0"
+            $versionPattern = '#.0.0.0'
+            $expectedVersion = '2.0.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '#.#.#.B'" {
-            $versionPattern = "#.#.#.B"
-            $expectedVersion = "2.3.1.7"
+            $versionPattern = '#.#.#.B'
+            $expectedVersion = '2.3.1.7'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '#.#.#.100B'" {
-            $versionPattern = "#.#.#.100B"
-            $expectedVersion = "2.3.1.1007"
+            $versionPattern = '#.#.#.100B'
+            $expectedVersion = '2.3.1.1007'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '#.#.#.10BB'" {
-            $versionPattern = "#.#.#.10BB"
-            $expectedVersion = "2.3.1.1007"
+            $versionPattern = '#.#.#.10BB'
+            $expectedVersion = '2.3.1.1007'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '#.#.#.1BBB'" {
-            $versionPattern = "#.#.#.1BBB"
-            $expectedVersion = "2.3.1.1007"
+            $versionPattern = '#.#.#.1BBB'
+            $expectedVersion = '2.3.1.1007'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $versionPattern
+            ..\src\Update-Version.ps1 -Version $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when version is in the build-number in .NET format" {
-        $buildNumber = "Test_2014-11-27_3.2.12345.7"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $nuspecPath = "TestDrive:\package.nuspec"
-        $expectedVersion = "3.2.12345.7"
+    Context 'when version is in the build-number in .NET format' {
+        $buildNumber = 'Test_2014-11-27_3.2.12345.7'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $nuspecPath = 'TestDrive:\package.nuspec'
+        $expectedVersion = '3.2.12345.7'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
         Set-Content -Path $nuspecPath -Value $Package_Nuspec
 
-        It "should use this version for the assembly-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern "#.#.#.#"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
+        It 'should use this version for the assembly-version' {
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern '#.#.#.#'
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should use this version for the file-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern "#.#.#.#"
+        It 'should use this version for the file-version' {
+            ..\src\Update-Version.ps1 -FileVersionPattern '#.#.#.#'
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should use this version for the product-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern "#.#.#.#"
+        It 'should use this version for the product-version' {
+            ..\src\Update-Version.ps1 -ProductVersionPattern '#.#.#.#'
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should use this version for the package-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern "#.#.#.#"
+        It 'should use this version for the package-version' {
+            ..\src\Update-Version.ps1 -PackageVersionPattern '#.#.#.#'
 
             $actualVersion = Get-PackageVersion -Path $nuspecPath
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when version is in the build-number in SemVer format" {
-        $buildNumber = "Test_2014-11-27_2.3.1-ci42+12345.07"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $nuspecPath = "TestDrive:\package.nuspec"
+    Context 'when version is in the build-number in SemVer format' {
+        $buildNumber = 'Test_2014-11-27_2.3.1-ci42+12345.07'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $nuspecPath = 'TestDrive:\package.nuspec'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
         Set-Content -Path $nuspecPath -Value $Package_Nuspec
 
-        It "should use this version for the assembly-version" {
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
+        It 'should use this version for the assembly-version' {
             # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern "#.#.#.0"
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern '#.#.#.0'
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
-            $actualVersion | Should Be "2.3.1.0"
+            $actualVersion | Should Be '2.3.1.0'
         }
 
-        It "should use this version for the file-version" {
+        It 'should use this version for the file-version' {
             # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern "#.#.#.0"
+            ..\src\Update-Version.ps1 -FileVersionPattern '#.#.#.0'
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
-            $actualVersion | Should Be "2.3.1.0"
+            $actualVersion | Should Be '2.3.1.0'
         }
 
-        It "should use this version for the product-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern "#.#.###"
+        It 'should use this version for the product-version' {
+            ..\src\Update-Version.ps1 -ProductVersionPattern '#.#.###'
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
-            $actualVersion | Should Be "2.3.1-ci42+12345.07"
+            $actualVersion | Should Be '2.3.1-ci42+12345.07'
         }
 
-        It "should use this version for the package-version" {
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern "#.#.###"
+        It 'should use this version for the package-version' {
+            ..\src\Update-Version.ps1 -PackageVersionPattern '#.#.###'
 
             # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
             $actualVersion = Get-PackageVersion -Path $nuspecPath
-            $actualVersion | Should Be "2.3.1-ci42-12345-07"
+            $actualVersion | Should Be '2.3.1-ci42-12345-07'
         }
     }
 
-    Context "when assembly-version is provided with formatting" {
-        $buildNumber = "Test_2014-11-27_2.3.1.7"
-        $path = "TestDrive:\AssemblyInfo.cs"
+    Context 'when assembly-version is provided with formatting' {
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\AssemblyInfo.cs'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
 
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
         It "should return correct version when pattern is '1.2.J.B'" {
-            $versionPattern = "1.2.J.B"
+            $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.M.D.B'" {
-            $versionPattern = "YYYY.M.D.B"
+            $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
-            $versionPattern = "YYYY.MM.DD.BB"
+            $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
-            $versionPattern = "YYYY.MM.DD.BBB"
+            $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MMDD.B'" {
-            $versionPattern = "1.YY.MMDD.B"
+            $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MD.B'" {
-            $buildNumber = "Test_2014-11-27_2.3.1.8"
-            $versionPattern = "1.YY.MD.B"
+            $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
-            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).8"
+            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBB'" {
-            $versionPattern = "1.YY.MM.DDBB"
+            $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
-            $versionPattern = "1.YY.MM.DDBBB"
+            $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
-            $versionPattern = "1.2.3-ci+J.B"
+            $versionPattern = '1.2.3-ci+J.B'
             $expectedVersion = "1.2.3-ci+$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
-            $versionPattern = "1.2.3-ci+J.BB"
+            $versionPattern = '1.2.3-ci+J.BB'
             $expectedVersion = "1.2.3-ci+$julian.07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
-            $versionPattern = "1.2.3-ci+J.BBB"
+            $versionPattern = '1.2.3-ci+J.BBB'
             $expectedVersion = "1.2.3-ci+$julian.007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
-            $versionPattern = "1.2.3-ciJ-B"
+            $versionPattern = '1.2.3-ciJ-B'
             $expectedVersion = "1.2.3-ci$julian-7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
-            $versionPattern = "1.2.3-ciJ-BB"
+            $versionPattern = '1.2.3-ciJ-BB'
             $expectedVersion = "1.2.3-ci$julian-07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
-            $versionPattern = "1.2.3-ciJ-BBB"
+            $versionPattern = '1.2.3-ciJ-BBB'
             $expectedVersion = "1.2.3-ci$julian-007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when assembly-version is provided with #-tokens and using .NET format" {
-        $buildNumber = "Test_2014-11-27_2.3.1.7"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $version = "1.2.3.4"
+    Context 'when assembly-version is provided with #-tokens and using .NET format' {
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $version = '1.2.3.4'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
 
-        It "should return correct version when format is '#.#.#.#'" {
-            $versionPattern = "#.#.#.#"
-            $expectedVersion = "1.2.3.4"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+        It "should return correct version when format is '#.#.#.#'" {
+            $versionPattern = '#.#.#.#'
+            $expectedVersion = '1.2.3.4'
+
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#.0'" {
-            $versionPattern = "#.#.#.0"
-            $expectedVersion = "1.2.3.0"
+            $versionPattern = '#.#.#.0'
+            $expectedVersion = '1.2.3.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0.0'" {
-            $versionPattern = "#.#.0.0"
-            $expectedVersion = "1.2.0.0"
+            $versionPattern = '#.#.0.0'
+            $expectedVersion = '1.2.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0.0'" {
-            $versionPattern = "#.0.0.0"
-            $expectedVersion = "1.0.0.0"
+            $versionPattern = '#.0.0.0'
+            $expectedVersion = '1.0.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#'" {
-            $versionPattern = "#.#.#"
-            $expectedVersion = "1.2.3"
+            $versionPattern = '#.#.#'
+            $expectedVersion = '1.2.3'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0'" {
-            $versionPattern = "#.#.0"
-            $expectedVersion = "1.2.0"
+            $versionPattern = '#.#.0'
+            $expectedVersion = '1.2.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0'" {
-            $versionPattern = "#.0.0"
-            $expectedVersion = "1.0.0"
+            $versionPattern = '#.0.0'
+            $expectedVersion = '1.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#'" {
-            $versionPattern = "#.#"
-            $expectedVersion = "1.2"
+            $versionPattern = '#.#'
+            $expectedVersion = '1.2'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0'" {
-            $versionPattern = "#.0"
-            $expectedVersion = "1.0"
+            $versionPattern = '#.0'
+            $expectedVersion = '1.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when assembly-version is provided with #-tokens and using SemVer format" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $version = "1.2.3-ci0008+14331.07"
+    Context 'when assembly-version is provided with #-tokens and using SemVer format' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $version = '1.2.3-ci0008+14331.07'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
 
-        It "should return correct version when format is '#.#.###'" {
-            $versionPattern = "#.#.###"
-            $expectedVersion = "1.2.3-ci0008+14331.07"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+        It "should return correct version when format is '#.#.###'" {
+            $versionPattern = '#.#.###'
+            $expectedVersion = '1.2.3-ci0008+14331.07'
+
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.##'" {
-            $versionPattern = "#.#.##"
-            $expectedVersion = "1.2.3-ci0008"
+            $versionPattern = '#.#.##'
+            $expectedVersion = '1.2.3-ci0008'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#'" {
-            $versionPattern = "#.#.#"
-            $expectedVersion = "1.2.3"
+            $versionPattern = '#.#.#'
+            $expectedVersion = '1.2.3'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0'" {
-            $versionPattern = "#.#.0"
-            $expectedVersion = "1.2.0"
+            $versionPattern = '#.#.0'
+            $expectedVersion = '1.2.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0'" {
-            $versionPattern = "#.0.0"
-            $expectedVersion = "1.0.0"
+            $versionPattern = '#.0.0'
+            $expectedVersion = '1.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-    }
-
-    Context "when assembly-version contains placeholders" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $version = "4.3.2.1"
-
-        Set-Content -Path $path -Value $AssemblyInfo_CS
-
-        It "should return single placeholder as is" {
-            $versionPattern = "#.#.{0}"
-            $expectedVersion = "4.3.{0}"
-
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-
-        It "should return multiple placeholder as is" {
-            $versionPattern = "#.{1}#.{0}"
-            $expectedVersion = "4.{1}3.{0}"
-
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -AssemblyVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when file-version is provided with formatting" {
-        $buildNumber = "Test_2014-11-27_2.3.1.7"
-        $path = "TestDrive:\AssemblyInfo.cs"
+    Context 'when assembly-version contains placeholders' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $version = '4.3.2.1'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
+
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
+        It 'should return single placeholder as is' {
+            $versionPattern = '#.#.{0}'
+            $expectedVersion = '4.3.{0}'
+
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It 'should return multiple placeholder as is' {
+            $versionPattern = '#.{1}#.{0}'
+            $expectedVersion = '4.{1}3.{0}'
+
+            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+    }
+
+    Context 'when file-version is provided with formatting' {
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+
+        Set-Content -Path $path -Value $AssemblyInfo_CS
+
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
         It "should return correct version when pattern is '1.2.J.B'" {
-            $versionPattern = "1.2.J.B"
+            $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.M.D.B'" {
-            $versionPattern = "YYYY.M.D.B"
+            $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
-            $versionPattern = "YYYY.MM.DD.BB"
+            $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
-            $versionPattern = "YYYY.MM.DD.BBB"
+            $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MMDD.B'" {
-            $versionPattern = "1.YY.MMDD.B"
+            $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MD.B'" {
-            $buildNumber = "Test_2014-11-27_2.3.1.8"
-            $versionPattern = "1.YY.MD.B"
+            $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
-            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).8"
+            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBB'" {
-            $versionPattern = "1.YY.MM.DDBB"
+            $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
-            $versionPattern = "1.YY.MM.DDBBB"
+            $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
-            $versionPattern = "1.2.3-ci+J.B"
+            $versionPattern = '1.2.3-ci+J.B'
             $expectedVersion = "1.2.3-ci+$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
-            $versionPattern = "1.2.3-ci+J.BB"
+            $versionPattern = '1.2.3-ci+J.BB'
             $expectedVersion = "1.2.3-ci+$julian.07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
-            $versionPattern = "1.2.3-ci+J.BBB"
+            $versionPattern = '1.2.3-ci+J.BBB'
             $expectedVersion = "1.2.3-ci+$julian.007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
-            $versionPattern = "1.2.3-ciJ-B"
+            $versionPattern = '1.2.3-ciJ-B'
             $expectedVersion = "1.2.3-ci$julian-7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
-            $versionPattern = "1.2.3-ciJ-BB"
+            $versionPattern = '1.2.3-ciJ-BB'
             $expectedVersion = "1.2.3-ci$julian-07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
-            $versionPattern = "1.2.3-ciJ-BBB"
+            $versionPattern = '1.2.3-ciJ-BBB'
             $expectedVersion = "1.2.3-ci$julian-007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when file-version is provided with #-tokens and using .NET format" {
-        $buildNumber = "Test_2014-11-27_2.3.1.7"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $version = "1.2.3.4"
+    Context 'when file-version is provided with #-tokens and using .NET format' {
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $version = '1.2.3.4'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
 
-        It "should return correct version when format is '#.#.#.#'" {
-            $versionPattern = "#.#.#.#"
-            $expectedVersion = "1.2.3.4"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+        It "should return correct version when format is '#.#.#.#'" {
+            $versionPattern = '#.#.#.#'
+            $expectedVersion = '1.2.3.4'
+
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#.0'" {
-            $versionPattern = "#.#.#.0"
-            $expectedVersion = "1.2.3.0"
+            $versionPattern = '#.#.#.0'
+            $expectedVersion = '1.2.3.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0.0'" {
-            $versionPattern = "#.#.0.0"
-            $expectedVersion = "1.2.0.0"
+            $versionPattern = '#.#.0.0'
+            $expectedVersion = '1.2.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0.0'" {
-            $versionPattern = "#.0.0.0"
-            $expectedVersion = "1.0.0.0"
+            $versionPattern = '#.0.0.0'
+            $expectedVersion = '1.0.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#'" {
-            $versionPattern = "#.#.#"
-            $expectedVersion = "1.2.3"
+            $versionPattern = '#.#.#'
+            $expectedVersion = '1.2.3'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0'" {
-            $versionPattern = "#.#.0"
-            $expectedVersion = "1.2.0"
+            $versionPattern = '#.#.0'
+            $expectedVersion = '1.2.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0'" {
-            $versionPattern = "#.0.0"
-            $expectedVersion = "1.0.0"
+            $versionPattern = '#.0.0'
+            $expectedVersion = '1.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#'" {
-            $versionPattern = "#.#"
-            $expectedVersion = "1.2"
+            $versionPattern = '#.#'
+            $expectedVersion = '1.2'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0'" {
-            $versionPattern = "#.0"
-            $expectedVersion = "1.0"
+            $versionPattern = '#.0'
+            $expectedVersion = '1.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when file-version is provided with #-tokens and using SemVer format" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $version = "1.2.3-ci0008+14331.07"
+    Context 'when file-version is provided with #-tokens and using SemVer format' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $version = '1.2.3-ci0008+14331.07'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
 
-        It "should return correct version when format is '#.#.###'" {
-            $versionPattern = "#.#.###"
-            $expectedVersion = "1.2.3-ci0008+14331.07"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+        It "should return correct version when format is '#.#.###'" {
+            $versionPattern = '#.#.###'
+            $expectedVersion = '1.2.3-ci0008+14331.07'
+
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.##'" {
-            $versionPattern = "#.#.##"
-            $expectedVersion = "1.2.3-ci0008"
+            $versionPattern = '#.#.##'
+            $expectedVersion = '1.2.3-ci0008'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#'" {
-            $versionPattern = "#.#.#"
-            $expectedVersion = "1.2.3"
+            $versionPattern = '#.#.#'
+            $expectedVersion = '1.2.3'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0'" {
-            $versionPattern = "#.#.0"
-            $expectedVersion = "1.2.0"
+            $versionPattern = '#.#.0'
+            $expectedVersion = '1.2.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0'" {
-            $versionPattern = "#.0.0"
-            $expectedVersion = "1.0.0"
+            $versionPattern = '#.0.0'
+            $expectedVersion = '1.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType FileVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-    }
-
-    Context "when file-version contains placeholders" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $version = "4.3.2.1"
-
-        Set-Content -Path $path -Value $AssemblyInfo_CS
-
-        It "should return single placeholder as is" {
-            $versionPattern = "#.#.{0}"
-            $expectedVersion = "4.3.{0}"
-
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType FileVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-
-        It "should return multiple placeholder as is" {
-            $versionPattern = "#.{1}#.{0}"
-            $expectedVersion = "4.{1}3.{0}"
-
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -FileVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when product-version is provided with formatting" {
-        $buildNumber = "Test_2014-11-27_2.3.1.7"
-        $path = "TestDrive:\AssemblyInfo.cs"
+    Context 'when file-version contains placeholders' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $version = '4.3.2.1'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
+
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
+        It 'should return single placeholder as is' {
+            $versionPattern = '#.#.{0}'
+            $expectedVersion = '4.3.{0}'
+
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType FileVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It 'should return multiple placeholder as is' {
+            $versionPattern = '#.{1}#.{0}'
+            $expectedVersion = '4.{1}3.{0}'
+
+            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType FileVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+    }
+
+    Context 'when product-version is provided with formatting' {
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+
+        Set-Content -Path $path -Value $AssemblyInfo_CS
+
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
         It "should return correct version when pattern is '1.2.J.B'" {
-            $versionPattern = "1.2.J.B"
+            $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.M.D.B'" {
-            $versionPattern = "YYYY.M.D.B"
+            $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
-            $versionPattern = "YYYY.MM.DD.BB"
+            $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
-            $versionPattern = "YYYY.MM.DD.BBB"
+            $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MMDD.B'" {
-            $versionPattern = "1.YY.MMDD.B"
+            $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MD.B'" {
-            $buildNumber = "Test_2014-11-27_2.3.1.8"
-            $versionPattern = "1.YY.MD.B"
+            $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
-            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).8"
+            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBB'" {
-            $versionPattern = "1.YY.MM.DDBB"
+            $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
-            $versionPattern = "1.YY.MM.DDBBB"
+            $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
-            $versionPattern = "1.2.3-ci+J.B"
+            $versionPattern = '1.2.3-ci+J.B'
             $expectedVersion = "1.2.3-ci+$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
-            $versionPattern = "1.2.3-ci+J.BB"
+            $versionPattern = '1.2.3-ci+J.BB'
             $expectedVersion = "1.2.3-ci+$julian.07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
-            $versionPattern = "1.2.3-ci+J.BBB"
+            $versionPattern = '1.2.3-ci+J.BBB'
             $expectedVersion = "1.2.3-ci+$julian.007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
-            $versionPattern = "1.2.3-ciJ-B"
+            $versionPattern = '1.2.3-ciJ-B'
             $expectedVersion = "1.2.3-ci$julian-7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
-            $versionPattern = "1.2.3-ciJ-BB"
+            $versionPattern = '1.2.3-ciJ-BB'
             $expectedVersion = "1.2.3-ci$julian-07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
-            $versionPattern = "1.2.3-ciJ-BBB"
+            $versionPattern = '1.2.3-ciJ-BBB'
             $expectedVersion = "1.2.3-ci$julian-007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when product-version is provided with #-tokens and using .NET format" {
-        $buildNumber = "Test_2014-11-27_2.3.1.7"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $version = "1.2.3.4"
+    Context 'when product-version is provided with #-tokens and using .NET format' {
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $version = '1.2.3.4'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
 
-        It "should return correct version when format is '#.#.#.#'" {
-            $versionPattern = "#.#.#.#"
-            $expectedVersion = "1.2.3.4"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+        It "should return correct version when format is '#.#.#.#'" {
+            $versionPattern = '#.#.#.#'
+            $expectedVersion = '1.2.3.4'
+
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#.0'" {
-            $versionPattern = "#.#.#.0"
-            $expectedVersion = "1.2.3.0"
+            $versionPattern = '#.#.#.0'
+            $expectedVersion = '1.2.3.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0.0'" {
-            $versionPattern = "#.#.0.0"
-            $expectedVersion = "1.2.0.0"
+            $versionPattern = '#.#.0.0'
+            $expectedVersion = '1.2.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0.0'" {
-            $versionPattern = "#.0.0.0"
-            $expectedVersion = "1.0.0.0"
+            $versionPattern = '#.0.0.0'
+            $expectedVersion = '1.0.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#'" {
-            $versionPattern = "#.#.#"
-            $expectedVersion = "1.2.3"
+            $versionPattern = '#.#.#'
+            $expectedVersion = '1.2.3'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0'" {
-            $versionPattern = "#.#.0"
-            $expectedVersion = "1.2.0"
+            $versionPattern = '#.#.0'
+            $expectedVersion = '1.2.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0'" {
-            $versionPattern = "#.0.0"
-            $expectedVersion = "1.0.0"
+            $versionPattern = '#.0.0'
+            $expectedVersion = '1.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#'" {
-            $versionPattern = "#.#"
-            $expectedVersion = "1.2"
+            $versionPattern = '#.#'
+            $expectedVersion = '1.2'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0'" {
-            $versionPattern = "#.0"
-            $expectedVersion = "1.0"
+            $versionPattern = '#.0'
+            $expectedVersion = '1.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when product-version is provided with #-tokens and using SemVer format" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $version = "1.2.3-ci0008+14331.07"
+    Context 'when product-version is provided with #-tokens and using SemVer format' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $version = '1.2.3-ci0008+14331.07'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
 
-        It "should return correct version when format is '#.#.###'" {
-            $versionPattern = "#.#.###"
-            $expectedVersion = "1.2.3-ci0008+14331.07"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+        It "should return correct version when format is '#.#.###'" {
+            $versionPattern = '#.#.###'
+            $expectedVersion = '1.2.3-ci0008+14331.07'
+
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.##'" {
-            $versionPattern = "#.#.##"
-            $expectedVersion = "1.2.3-ci0008"
+            $versionPattern = '#.#.##'
+            $expectedVersion = '1.2.3-ci0008'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#'" {
-            $versionPattern = "#.#.#"
-            $expectedVersion = "1.2.3"
+            $versionPattern = '#.#.#'
+            $expectedVersion = '1.2.3'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0'" {
-            $versionPattern = "#.#.0"
-            $expectedVersion = "1.2.0"
+            $versionPattern = '#.#.0'
+            $expectedVersion = '1.2.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0'" {
-            $versionPattern = "#.0.0"
-            $expectedVersion = "1.0.0"
+            $versionPattern = '#.0.0'
+            $expectedVersion = '1.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when product-version contains placeholders" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\AssemblyInfo.cs"
-        $version = "4.3.2.1"
+    Context 'when product-version contains placeholders' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $version = '4.3.2.1'
 
         Set-Content -Path $path -Value $AssemblyInfo_CS
 
-        It "should return single placeholder as is" {
-            $versionPattern = "#.#.{0}"
-            $expectedVersion = "4.3.{0}"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+        It 'should return single placeholder as is' {
+            $versionPattern = '#.#.{0}'
+            $expectedVersion = '4.3.{0}'
+
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return multiple placeholder as is" {
-            $versionPattern = "#.{1}#.{0}"
-            $expectedVersion = "4.{1}3.{0}"
+        It 'should return multiple placeholder as is' {
+            $versionPattern = '#.{1}#.{0}'
+            $expectedVersion = '4.{1}3.{0}'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -ProductVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern $versionPattern
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when package-version is provided with formatting" {
-        $buildNumber = "Test_2014-11-27_2.3.1.7"
-        $path = "TestDrive:\package.nuspec"
+    Context 'when package-version is provided with formatting' {
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\package.nuspec'
 
         Set-Content -Path $path -Value $Package_Nuspec
 
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
         It "should return correct version when pattern is '1.2.J.B'" {
-            $versionPattern = "1.2.J.B"
+            $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.M.D.B'" {
-            $versionPattern = "YYYY.M.D.B"
+            $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
-            $versionPattern = "YYYY.MM.DD.BB"
+            $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
-            $versionPattern = "YYYY.MM.DD.BBB"
+            $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MMDD.B'" {
-            $versionPattern = "1.YY.MMDD.B"
+            $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MD.B'" {
-            $buildNumber = "Test_2014-11-27_2.3.1.8"
-            $versionPattern = "1.YY.MD.B"
+            $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
-            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).8"
+            $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBB'" {
-            $versionPattern = "1.YY.MM.DDBB"
+            $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
-            $versionPattern = "1.YY.MM.DDBBB"
+            $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.B'" {
-            $versionPattern = "1.2.3-ci+J.B"
+            $versionPattern = '1.2.3-ci+J.B'
             $expectedVersion = "1.2.3-ci+$julian.7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
-            $versionPattern = "1.2.3-ci+J.BB"
+            $versionPattern = '1.2.3-ci+J.BB'
             $expectedVersion = "1.2.3-ci+$julian.07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
-            $versionPattern = "1.2.3-ci+J.BBB"
+            $versionPattern = '1.2.3-ci+J.BBB'
             $expectedVersion = "1.2.3-ci+$julian.007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-B'" {
-            $versionPattern = "1.2.3-ciJ-B"
+            $versionPattern = '1.2.3-ciJ-B'
             $expectedVersion = "1.2.3-ci$julian-7"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
-            $versionPattern = "1.2.3-ciJ-BB"
+            $versionPattern = '1.2.3-ciJ-BB'
             $expectedVersion = "1.2.3-ci$julian-07"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
-            $versionPattern = "1.2.3-ciJ-BBB"
+            $versionPattern = '1.2.3-ciJ-BBB'
             $expectedVersion = "1.2.3-ci$julian-007"
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when package-version is provided with #-tokens and using .NET format" {
-        $buildNumber = "Test_2014-11-27_2.3.1.7"
-        $path = "TestDrive:\package.nuspec"
-        $version = "1.2.3.4"
+    Context 'when package-version is provided with #-tokens and using .NET format' {
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\package.nuspec'
+        $version = '1.2.3.4'
 
         Set-Content -Path $path -Value $Package_Nuspec
 
-        It "should return correct version when format is '#.#.#.#'" {
-            $versionPattern = "#.#.#.#"
-            $expectedVersion = "1.2.3.4"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+        It "should return correct version when format is '#.#.#.#'" {
+            $versionPattern = '#.#.#.#'
+            $expectedVersion = '1.2.3.4'
+
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#.0'" {
-            $versionPattern = "#.#.#.0"
-            $expectedVersion = "1.2.3.0"
+            $versionPattern = '#.#.#.0'
+            $expectedVersion = '1.2.3.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0.0'" {
-            $versionPattern = "#.#.0.0"
-            $expectedVersion = "1.2.0.0"
+            $versionPattern = '#.#.0.0'
+            $expectedVersion = '1.2.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0.0'" {
-            $versionPattern = "#.0.0.0"
-            $expectedVersion = "1.0.0.0"
+            $versionPattern = '#.0.0.0'
+            $expectedVersion = '1.0.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#'" {
-            $versionPattern = "#.#.#"
-            $expectedVersion = "1.2.3"
+            $versionPattern = '#.#.#'
+            $expectedVersion = '1.2.3'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0'" {
-            $versionPattern = "#.#.0"
-            $expectedVersion = "1.2.0"
+            $versionPattern = '#.#.0'
+            $expectedVersion = '1.2.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0'" {
-            $versionPattern = "#.0.0"
-            $expectedVersion = "1.0.0"
+            $versionPattern = '#.0.0'
+            $expectedVersion = '1.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#'" {
-            $versionPattern = "#.#"
-            $expectedVersion = "1.2"
+            $versionPattern = '#.#'
+            $expectedVersion = '1.2'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0'" {
-            $versionPattern = "#.0"
-            $expectedVersion = "1.0"
+            $versionPattern = '#.0'
+            $expectedVersion = '1.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when package-version is provided with #-tokens and using SemVer format" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\package.nuspec"
-        $version = "1.2.3-ci0008+14331.07"
+    Context 'when package-version is provided with #-tokens and using SemVer format' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\package.nuspec'
+        $version = '1.2.3-ci0008+14331.07'
 
         Set-Content -Path $path -Value $Package_Nuspec
 
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
         It "should return correct version when format is '#.#.###'" {
-            $versionPattern = "#.#.###"
+            $versionPattern = '#.#.###'
             # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
-            $expectedVersion = "1.2.3-ci0008-14331-07"
+            $expectedVersion = '1.2.3-ci0008-14331-07'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.##'" {
-            $versionPattern = "#.#.##"
-            $expectedVersion = "1.2.3-ci0008"
+            $versionPattern = '#.#.##'
+            $expectedVersion = '1.2.3-ci0008'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.#'" {
-            $versionPattern = "#.#.#"
-            $expectedVersion = "1.2.3"
+            $versionPattern = '#.#.#'
+            $expectedVersion = '1.2.3'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.#.0'" {
-            $versionPattern = "#.#.0"
-            $expectedVersion = "1.2.0"
+            $versionPattern = '#.#.0'
+            $expectedVersion = '1.2.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
         It "should return correct version when format is '#.0.0'" {
-            $versionPattern = "#.0.0"
-            $expectedVersion = "1.0.0"
+            $versionPattern = '#.0.0'
+            $expectedVersion = '1.0.0'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
     }
 
-    Context "when package-version contains placeholders" {
-        $buildNumber = "Test_2014-11-27"
-        $path = "TestDrive:\package.nuspec"
-        $version = "4.3.2.1"
+    Context 'when package-version contains placeholders' {
+        $buildNumber = 'Test_2014-11-27'
+        $path = 'TestDrive:\package.nuspec'
+        $version = '4.3.2.1'
 
         Set-Content -Path $path -Value $Package_Nuspec
 
-        It "should return single placeholder as is" {
-            $versionPattern = "#.#.{0}"
-            $expectedVersion = "4.3.{0}"
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+        It 'should return single placeholder as is' {
+            $versionPattern = '#.#.{0}'
+            $expectedVersion = '4.3.{0}'
+
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return multiple placeholder as is" {
-            $versionPattern = "#.{1}#.{0}"
-            $expectedVersion = "4.{1}3.{0}"
+        It 'should return multiple placeholder as is' {
+            $versionPattern = '#.{1}#.{0}'
+            $expectedVersion = '4.{1}3.{0}'
 
-            Update-Version -SourcesDirectory "TestDrive:\" -BuildNumber $buildNumber -Version $version -PackageVersionPattern $versionPattern
+            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern $versionPattern
 
             $actualVersion = Get-PackageVersion -Path $path
             $actualVersion | Should Be $expectedVersion
