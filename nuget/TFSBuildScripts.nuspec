@@ -10,8 +10,8 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>TFSBuildScripts provides PowerShell scripts that can be used to extend TFS Build Workflows.</description>
     <releaseNotes>https://github.com/CodeblackNL/TFSBuildScripts/wiki/Changelog</releaseNotes>
-    <copyright>Copyright 2014</copyright>
-    <tags>TFS TFS2013 Build PowerShell</tags>
+    <copyright>Copyright 2014-2015</copyright>
+    <tags>TFS TFS2013 TFS2015 Build Script PowerShell</tags>
   </metadata>
   <files>
     <file src="\tools\**\*.*" target="tools" /> 
