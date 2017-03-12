@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<package >
+<package>
   <metadata>
     <id>TFSBuildScripts</id>
-    <version>1.5.0</version>
+    <version>0.0.0</version>
     <authors>Jeroen Swart</authors>
     <owners>Jeroen Swart</owners>
     <projectUrl>https://github.com/CodeblackNL/TFSBuildScripts</projectUrl>
@@ -14,7 +14,7 @@
     <tags>TFS TFS2013 TFS2015 Build Script PowerShell</tags>
   </metadata>
   <files>
-    <file src="\tools\**\*.*" target="tools" /> 
+    <file src="\tools\**\*.*" target="tools" />
     <file src="..\src\Build.psm1" target="tools\Build.psm1" />
     <file src="..\src\PreBuild.ps1" target="tools\PreBuild.ps1" />
     <file src="..\src\PostBuild.ps1" target="tools\PostBuild.ps1" />
