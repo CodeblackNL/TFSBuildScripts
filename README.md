@@ -8,8 +8,8 @@ Check the [wiki](https://github.com/CodeblackNL/TFSBuildScripts/wiki) for more i
 Previous versions (<= 1.5.0) of TFSBuildScripts provided scripts for the XAML-type builds;
 see the [wiki](https://github.com/CodeblackNL/TFSBuildScripts/wiki/XAML-Home) for more information.
 
-With TFS 2015, a new build mechanisme was introduced. It consists of the execution of a list of tasks.
-TFS already comes with tasks for running a SonarQube analysis and packaging & publishing NuGet packages.
-Also, release management is now integrated.
+With TFS 2015, a new build mechanisme was introduced. It basically consists of the execution of a list of tasks.
+TFS already comes with tasks for running a SonarQube analysis and packaging & publishing NuGet packages,
+which have all been improved with TFS 2017. Also, release management is now integrated.
 
 For TFSBuildScripts, this only leaves versioning; but that's a good thing :-).
