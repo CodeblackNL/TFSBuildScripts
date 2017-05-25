@@ -99,29 +99,29 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It 'should use this version for the assembly-version' {
-            ..\src\Update-Version.ps1 -Version $expectedVersion -AssemblyVersionPattern '#.#.#.#'
+        It 'should apply this version to the assembly-version' {
+            ..\src\Update-Version.ps1 -Version $expectedVersion
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should use this version for the file-version' {
-            ..\src\Update-Version.ps1 -Version $expectedVersion -FileVersionPattern '#.#.#.#'
+        It 'should apply this version to the file-version' {
+            ..\src\Update-Version.ps1 -Version $expectedVersion
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should use this version for the product-version' {
-            ..\src\Update-Version.ps1 -Version $expectedVersion -ProductVersionPattern '#.#.#.#'
+        It 'should apply this version to the product-version' {
+            ..\src\Update-Version.ps1 -Version $expectedVersion
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should use this version for the package-version' {
-            ..\src\Update-Version.ps1 -Version $expectedVersion -PackageVersionPattern '#.#.#.#'
+        It 'should apply this version to the package-version' {
+            ..\src\Update-Version.ps1 -Version $expectedVersion
 
             $actualVersion = Get-PackageVersion -Path $nuspecPath
             $actualVersion | Should Be $expectedVersion
@@ -140,39 +140,39 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It 'should use this version for the assembly-version' {
-            # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            ..\src\Update-Version.ps1 -Version $version -AssemblyVersionPattern '#.#.#.0'
+        It 'should apply this version to the assembly-version' {
+            ..\src\Update-Version.ps1 -Version $version
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
+            # assembly-version does not support SemVer, so the #.#.#.0 pattern is used
             $actualVersion | Should Be '2.3.1.0'
         }
 
-        It 'should use this version for the file-version' {
-            # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            ..\src\Update-Version.ps1 -Version $version -FileVersionPattern '#.#.#.0'
+        It 'should apply this version to the file-version' {
+            ..\src\Update-Version.ps1 -Version $version
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
+            # assembly-version does not support SemVer, so the #.#.#.0 pattern is used
             $actualVersion | Should Be '2.3.1.0'
         }
 
-        It 'should use this version for the product-version' {
-            ..\src\Update-Version.ps1 -Version $version -ProductVersionPattern '#.#.###'
+        It 'should apply this version to the product-version' {
+            ..\src\Update-Version.ps1 -Version $version
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be '2.3.1-ci42+12345.0'
         }
 
-        It 'should use this version for the package-version' {
-            ..\src\Update-Version.ps1 -Version $version -PackageVersionPattern '#.#.###'
+        It 'should apply this version to the package-version' {
+            ..\src\Update-Version.ps1 -Version $version
 
-            # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
             $actualVersion = Get-PackageVersion -Path $nuspecPath
+            # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
             $actualVersion | Should Be '2.3.1-ci42-12345-0'
         }
     }
 
-    Context 'when version is explicitely provided with formatting' {
+    Context 'when version is explicitely provided in .NET format with formatting' {
         # NOTE: since only the product-version allows all versioning-patterns,
         #       the version-patterns in this context are only tested against the product-version;
         #       it is assumed (for now) that these patterns will work for the other versions as well
@@ -184,7 +184,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when pattern is '1.2.J.B'" {
+        It "should apply the correct version when pattern is '1.2.J.B'" {
             $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
@@ -194,7 +194,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.M.D.B'" {
+        It "should apply the correct version when pattern is 'YYYY.M.D.B'" {
             $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -205,7 +205,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BB'" {
             $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -216,7 +216,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BBB'" {
             $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -227,7 +227,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MMDD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MMDD.B'" {
             $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
@@ -238,7 +238,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MD.B'" {
             $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
@@ -249,7 +249,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBB'" {
             $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
@@ -260,7 +260,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBBB'" {
             $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
@@ -271,67 +271,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.B'" {
-            $versionPattern = '1.2.3-ci+J.B'
-            $expectedVersion = "1.2.3-ci+$julian.7"
-
-            ..\src\Update-Version.ps1 -Version $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-
-        It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
-            $versionPattern = '1.2.3-ci+J.BB'
-            $expectedVersion = "1.2.3-ci+$julian.07"
-
-            ..\src\Update-Version.ps1 -Version $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-
-        It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
-            $versionPattern = '1.2.3-ci+J.BBB'
-            $expectedVersion = "1.2.3-ci+$julian.007"
-
-            ..\src\Update-Version.ps1 -Version $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-
-        It "should return correct version when pattern is '1.2.3-ciJ-B'" {
-            $versionPattern = '1.2.3-ciJ-B'
-            $expectedVersion = "1.2.3-ci$julian-7"
-
-            ..\src\Update-Version.ps1 -Version $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-
-        It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
-            $versionPattern = '1.2.3-ciJ-BB'
-            $expectedVersion = "1.2.3-ci$julian-07"
-
-            ..\src\Update-Version.ps1 -Version $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-
-        It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
-            $versionPattern = '1.2.3-ciJ-BBB'
-            $expectedVersion = "1.2.3-ci$julian-007"
-
-            ..\src\Update-Version.ps1 -Version $versionPattern
-
-            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
-            $actualVersion | Should Be $expectedVersion
-        }
-
-        It "should return correct version when pattern is '#.#.#.#'" {
+        It "should apply the correct version when pattern is '#.#.#.#'" {
             $versionPattern = '#.#.#.#'
             $expectedVersion = '2.3.1.7'
 
@@ -341,7 +281,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '#.#.#.0'" {
+        It "should apply the correct version when pattern is '#.#.#.0'" {
             $versionPattern = '#.#.#.0'
             $expectedVersion = '2.3.1.0'
 
@@ -351,7 +291,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '#.#.0.0'" {
+        It "should apply the correct version when pattern is '#.#.0.0'" {
             $versionPattern = '#.#.0.0'
             $expectedVersion = '2.3.0.0'
 
@@ -361,7 +301,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '#.0.0.0'" {
+        It "should apply the correct version when pattern is '#.0.0.0'" {
             $versionPattern = '#.0.0.0'
             $expectedVersion = '2.0.0.0'
 
@@ -371,7 +311,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '#.#.#.B'" {
+        It "should apply the correct version when pattern is '#.#.#.B'" {
             $versionPattern = '#.#.#.B'
             $expectedVersion = '2.3.1.7'
 
@@ -381,7 +321,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '#.#.#.100B'" {
+        It "should apply the correct version when pattern is '#.#.#.100B'" {
             $versionPattern = '#.#.#.100B'
             $expectedVersion = '2.3.1.1007'
 
@@ -391,7 +331,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '#.#.#.10BB'" {
+        It "should apply the correct version when pattern is '#.#.#.10BB'" {
             $versionPattern = '#.#.#.10BB'
             $expectedVersion = '2.3.1.1007'
 
@@ -401,9 +341,122 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '#.#.#.1BBB'" {
+        It "should apply the correct version when pattern is '#.#.#.1BBB'" {
             $versionPattern = '#.#.#.1BBB'
             $expectedVersion = '2.3.1.1007'
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+    }
+
+    Context 'when version is explicitely provided in SemVer format with formatting' {
+        # NOTE: since only the product-version allows all versioning-patterns,
+        #       the version-patterns in this context are only tested against the product-version;
+        #       it is assumed (for now) that these patterns will work for the other versions as well
+        $buildNumber = 'Test_2014-11-27_2.3.1.7'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+
+        Set-Content -Path $path -Value $AssemblyInfo_CS
+
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
+        It "should apply the correct version when pattern is '1.2.3-ci+J.B'" {
+            $versionPattern = '1.2.3-ci+J.B'
+            $expectedVersion = "1.2.3-ci+$julian.7"
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BB'" {
+            $versionPattern = '1.2.3-ci+J.BB'
+            $expectedVersion = "1.2.3-ci+$julian.07"
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BBB'" {
+            $versionPattern = '1.2.3-ci+J.BBB'
+            $expectedVersion = "1.2.3-ci+$julian.007"
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It "should apply the correct version when pattern is '1.2.3-ciJ-B'" {
+            $versionPattern = '1.2.3-ciJ-B'
+            $expectedVersion = "1.2.3-ci$julian-7"
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BB'" {
+            $versionPattern = '1.2.3-ciJ-BB'
+            $expectedVersion = "1.2.3-ci$julian-07"
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BBB'" {
+            $versionPattern = '1.2.3-ciJ-BBB'
+            $expectedVersion = "1.2.3-ci$julian-007"
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It "should apply the correct version when pattern is '#.#.#-ciB'" {
+            $versionPattern = '#.#.#-ciB'
+            $expectedVersion = "2.3.1-ci7"
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It "should apply the correct version when pattern is '#.#.#-ciBB'" {
+            $versionPattern = '#.#.#-ciBB'
+            $expectedVersion = "2.3.1-ci07"
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It "should apply the correct version when pattern is '#.#.#-ciBBB'" {
+            $versionPattern = '#.#.#-ciBBB'
+            $expectedVersion = "2.3.1-ci007"
+
+            ..\src\Update-Version.ps1 -Version $versionPattern
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be $expectedVersion
+        }
+
+        It "should apply the correct version when pattern is '#.#.#-ciJ.B'" {
+            $versionPattern = '#.#.#-ci+J.B'
+            $expectedVersion = "2.3.1-ci+$julian.7"
 
             ..\src\Update-Version.ps1 -Version $versionPattern
 
@@ -424,29 +477,29 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It 'should use this version for the assembly-version' {
-            ..\src\Update-Version.ps1 -AssemblyVersionPattern '#.#.#.#'
+        It 'should apply this version to the assembly-version' {
+            ..\src\Update-Version.ps1
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should use this version for the file-version' {
-            ..\src\Update-Version.ps1 -FileVersionPattern '#.#.#.#'
+        It 'should apply this version to the file-version' {
+            ..\src\Update-Version.ps1
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should use this version for the product-version' {
-            ..\src\Update-Version.ps1 -ProductVersionPattern '#.#.#.#'
+        It 'should apply this version to the product-version' {
+            ..\src\Update-Version.ps1
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should use this version for the package-version' {
-            ..\src\Update-Version.ps1 -PackageVersionPattern '#.#.#.#'
+        It 'should apply this version to the package-version' {
+            ..\src\Update-Version.ps1
 
             $actualVersion = Get-PackageVersion -Path $nuspecPath
             $actualVersion | Should Be $expectedVersion
@@ -464,34 +517,34 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It 'should use this version for the assembly-version' {
-            # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            ..\src\Update-Version.ps1 -AssemblyVersionPattern '#.#.#.0'
+        It 'should apply this version to the assembly-version' {
+            ..\src\Update-Version.ps1
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
+            # assembly-version does not support SemVer, so the #.#.#.0 pattern is used
             $actualVersion | Should Be '2.3.1.0'
         }
 
-        It 'should use this version for the file-version' {
-            # assembly-version does not support SemVer, so use #.#.#.0 pattern
-            ..\src\Update-Version.ps1 -FileVersionPattern '#.#.#.0'
+        It 'should apply this version to the file-version' {
+            ..\src\Update-Version.ps1
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
+            # assembly-version does not support SemVer, so the #.#.#.0 pattern is used
             $actualVersion | Should Be '2.3.1.0'
         }
 
-        It 'should use this version for the product-version' {
-            ..\src\Update-Version.ps1 -ProductVersionPattern '#.#.###'
+        It 'should apply this version to the product-version' {
+            ..\src\Update-Version.ps1
 
             $actualVersion = Get-Version -Path $path -VersionType ProductVersion
             $actualVersion | Should Be '2.3.1-ci42+12345.07'
         }
 
-        It 'should use this version for the package-version' {
-            ..\src\Update-Version.ps1 -PackageVersionPattern '#.#.###'
+        It 'should apply this version to the package-version' {
+            ..\src\Update-Version.ps1
 
-            # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
             $actualVersion = Get-PackageVersion -Path $nuspecPath
+            # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
             $actualVersion | Should Be '2.3.1-ci42-12345-07'
         }
     }
@@ -505,7 +558,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when pattern is '1.2.J.B'" {
+        It "should apply the correct version when pattern is '1.2.J.B'" {
             $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
@@ -515,7 +568,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.M.D.B'" {
+        It "should apply the correct version when pattern is 'YYYY.M.D.B'" {
             $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -526,7 +579,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BB'" {
             $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -537,7 +590,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BBB'" {
             $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -548,7 +601,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MMDD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MMDD.B'" {
             $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
@@ -559,7 +612,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MD.B'" {
             $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
@@ -570,7 +623,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBB'" {
             $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
@@ -581,7 +634,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBBB'" {
             $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
@@ -592,7 +645,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.B'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.B'" {
             $versionPattern = '1.2.3-ci+J.B'
             $expectedVersion = "1.2.3-ci+$julian.7"
 
@@ -602,7 +655,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BB'" {
             $versionPattern = '1.2.3-ci+J.BB'
             $expectedVersion = "1.2.3-ci+$julian.07"
 
@@ -612,7 +665,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BBB'" {
             $versionPattern = '1.2.3-ci+J.BBB'
             $expectedVersion = "1.2.3-ci+$julian.007"
 
@@ -622,7 +675,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-B'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-B'" {
             $versionPattern = '1.2.3-ciJ-B'
             $expectedVersion = "1.2.3-ci$julian-7"
 
@@ -632,7 +685,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BB'" {
             $versionPattern = '1.2.3-ciJ-BB'
             $expectedVersion = "1.2.3-ci$julian-07"
 
@@ -642,7 +695,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BBB'" {
             $versionPattern = '1.2.3-ciJ-BBB'
             $expectedVersion = "1.2.3-ci$julian-007"
 
@@ -663,7 +716,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when format is '#.#.#.#'" {
+        It "should apply the correct version when format is '#.#.#.#'" {
             $versionPattern = '#.#.#.#'
             $expectedVersion = '1.2.3.4'
 
@@ -673,7 +726,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#.0'" {
+        It "should apply the correct version when format is '#.#.#.0'" {
             $versionPattern = '#.#.#.0'
             $expectedVersion = '1.2.3.0'
 
@@ -683,7 +736,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0.0'" {
+        It "should apply the correct version when format is '#.#.0.0'" {
             $versionPattern = '#.#.0.0'
             $expectedVersion = '1.2.0.0'
 
@@ -693,7 +746,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0.0'" {
+        It "should apply the correct version when format is '#.0.0.0'" {
             $versionPattern = '#.0.0.0'
             $expectedVersion = '1.0.0.0'
 
@@ -703,7 +756,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#'" {
+        It "should apply the correct version when format is '#.#.#'" {
             $versionPattern = '#.#.#'
             $expectedVersion = '1.2.3'
 
@@ -713,7 +766,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0'" {
+        It "should apply the correct version when format is '#.#.0'" {
             $versionPattern = '#.#.0'
             $expectedVersion = '1.2.0'
 
@@ -723,7 +776,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0'" {
+        It "should apply the correct version when format is '#.0.0'" {
             $versionPattern = '#.0.0'
             $expectedVersion = '1.0.0'
 
@@ -733,7 +786,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#'" {
+        It "should apply the correct version when format is '#.#'" {
             $versionPattern = '#.#'
             $expectedVersion = '1.2'
 
@@ -743,7 +796,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0'" {
+        It "should apply the correct version when format is '#.0'" {
             $versionPattern = '#.0'
             $expectedVersion = '1.0'
 
@@ -764,7 +817,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when format is '#.#.###'" {
+        It "should apply the correct version when format is '#.#.###'" {
             $versionPattern = '#.#.###'
             $expectedVersion = '1.2.3-ci0008+14331.07'
 
@@ -774,7 +827,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.##'" {
+        It "should apply the correct version when format is '#.#.##'" {
             $versionPattern = '#.#.##'
             $expectedVersion = '1.2.3-ci0008'
 
@@ -784,7 +837,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#'" {
+        It "should apply the correct version when format is '#.#.#'" {
             $versionPattern = '#.#.#'
             $expectedVersion = '1.2.3'
 
@@ -794,7 +847,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0'" {
+        It "should apply the correct version when format is '#.#.0'" {
             $versionPattern = '#.#.0'
             $expectedVersion = '1.2.0'
 
@@ -804,7 +857,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0'" {
+        It "should apply the correct version when format is '#.0.0'" {
             $versionPattern = '#.0.0'
             $expectedVersion = '1.0.0'
 
@@ -825,7 +878,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It 'should return single placeholder as is' {
+        It 'should leave a single placeholder as is' {
             $versionPattern = '#.#.{0}'
             $expectedVersion = '4.3.{0}'
 
@@ -835,7 +888,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should return multiple placeholder as is' {
+        It 'should leave multiple placeholders as is' {
             $versionPattern = '#.{1}#.{0}'
             $expectedVersion = '4.{1}3.{0}'
 
@@ -855,7 +908,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when pattern is '1.2.J.B'" {
+        It "should apply the correct version when pattern is '1.2.J.B'" {
             $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
@@ -865,7 +918,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.M.D.B'" {
+        It "should apply the correct version when pattern is 'YYYY.M.D.B'" {
             $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -876,7 +929,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BB'" {
             $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -887,7 +940,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BBB'" {
             $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -898,7 +951,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MMDD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MMDD.B'" {
             $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
@@ -909,7 +962,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MD.B'" {
             $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
@@ -920,7 +973,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBB'" {
             $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
@@ -931,7 +984,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBBB'" {
             $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
@@ -942,7 +995,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.B'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.B'" {
             $versionPattern = '1.2.3-ci+J.B'
             $expectedVersion = "1.2.3-ci+$julian.7"
 
@@ -952,7 +1005,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BB'" {
             $versionPattern = '1.2.3-ci+J.BB'
             $expectedVersion = "1.2.3-ci+$julian.07"
 
@@ -962,7 +1015,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BBB'" {
             $versionPattern = '1.2.3-ci+J.BBB'
             $expectedVersion = "1.2.3-ci+$julian.007"
 
@@ -972,7 +1025,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-B'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-B'" {
             $versionPattern = '1.2.3-ciJ-B'
             $expectedVersion = "1.2.3-ci$julian-7"
 
@@ -982,7 +1035,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BB'" {
             $versionPattern = '1.2.3-ciJ-BB'
             $expectedVersion = "1.2.3-ci$julian-07"
 
@@ -992,7 +1045,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BBB'" {
             $versionPattern = '1.2.3-ciJ-BBB'
             $expectedVersion = "1.2.3-ci$julian-007"
 
@@ -1013,7 +1066,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when format is '#.#.#.#'" {
+        It "should apply the correct version when format is '#.#.#.#'" {
             $versionPattern = '#.#.#.#'
             $expectedVersion = '1.2.3.4'
 
@@ -1023,7 +1076,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#.0'" {
+        It "should apply the correct version when format is '#.#.#.0'" {
             $versionPattern = '#.#.#.0'
             $expectedVersion = '1.2.3.0'
 
@@ -1033,7 +1086,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0.0'" {
+        It "should apply the correct version when format is '#.#.0.0'" {
             $versionPattern = '#.#.0.0'
             $expectedVersion = '1.2.0.0'
 
@@ -1043,7 +1096,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0.0'" {
+        It "should apply the correct version when format is '#.0.0.0'" {
             $versionPattern = '#.0.0.0'
             $expectedVersion = '1.0.0.0'
 
@@ -1053,7 +1106,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#'" {
+        It "should apply the correct version when format is '#.#.#'" {
             $versionPattern = '#.#.#'
             $expectedVersion = '1.2.3'
 
@@ -1063,7 +1116,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0'" {
+        It "should apply the correct version when format is '#.#.0'" {
             $versionPattern = '#.#.0'
             $expectedVersion = '1.2.0'
 
@@ -1073,7 +1126,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0'" {
+        It "should apply the correct version when format is '#.0.0'" {
             $versionPattern = '#.0.0'
             $expectedVersion = '1.0.0'
 
@@ -1083,7 +1136,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#'" {
+        It "should apply the correct version when format is '#.#'" {
             $versionPattern = '#.#'
             $expectedVersion = '1.2'
 
@@ -1093,7 +1146,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0'" {
+        It "should apply the correct version when format is '#.0'" {
             $versionPattern = '#.0'
             $expectedVersion = '1.0'
 
@@ -1114,7 +1167,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when format is '#.#.###'" {
+        It "should apply the correct version when format is '#.#.###'" {
             $versionPattern = '#.#.###'
             $expectedVersion = '1.2.3-ci0008+14331.07'
 
@@ -1124,7 +1177,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.##'" {
+        It "should apply the correct version when format is '#.#.##'" {
             $versionPattern = '#.#.##'
             $expectedVersion = '1.2.3-ci0008'
 
@@ -1134,7 +1187,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#'" {
+        It "should apply the correct version when format is '#.#.#'" {
             $versionPattern = '#.#.#'
             $expectedVersion = '1.2.3'
 
@@ -1144,7 +1197,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0'" {
+        It "should apply the correct version when format is '#.#.0'" {
             $versionPattern = '#.#.0'
             $expectedVersion = '1.2.0'
 
@@ -1154,7 +1207,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0'" {
+        It "should apply the correct version when format is '#.0.0'" {
             $versionPattern = '#.0.0'
             $expectedVersion = '1.0.0'
 
@@ -1175,7 +1228,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It 'should return single placeholder as is' {
+        It 'should leave a single placeholder as is' {
             $versionPattern = '#.#.{0}'
             $expectedVersion = '4.3.{0}'
 
@@ -1185,7 +1238,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should return multiple placeholder as is' {
+        It 'should leave multiple placeholders as is' {
             $versionPattern = '#.{1}#.{0}'
             $expectedVersion = '4.{1}3.{0}'
 
@@ -1205,7 +1258,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when pattern is '1.2.J.B'" {
+        It "should apply the correct version when pattern is '1.2.J.B'" {
             $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
@@ -1215,7 +1268,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.M.D.B'" {
+        It "should apply the correct version when pattern is 'YYYY.M.D.B'" {
             $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -1226,7 +1279,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BB'" {
             $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -1237,7 +1290,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BBB'" {
             $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -1248,7 +1301,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MMDD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MMDD.B'" {
             $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
@@ -1259,7 +1312,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MD.B'" {
             $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
@@ -1270,7 +1323,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBB'" {
             $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
@@ -1281,7 +1334,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBBB'" {
             $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
@@ -1292,7 +1345,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.B'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.B'" {
             $versionPattern = '1.2.3-ci+J.B'
             $expectedVersion = "1.2.3-ci+$julian.7"
 
@@ -1302,7 +1355,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BB'" {
             $versionPattern = '1.2.3-ci+J.BB'
             $expectedVersion = "1.2.3-ci+$julian.07"
 
@@ -1312,7 +1365,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BBB'" {
             $versionPattern = '1.2.3-ci+J.BBB'
             $expectedVersion = "1.2.3-ci+$julian.007"
 
@@ -1322,7 +1375,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-B'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-B'" {
             $versionPattern = '1.2.3-ciJ-B'
             $expectedVersion = "1.2.3-ci$julian-7"
 
@@ -1332,7 +1385,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BB'" {
             $versionPattern = '1.2.3-ciJ-BB'
             $expectedVersion = "1.2.3-ci$julian-07"
 
@@ -1342,7 +1395,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BBB'" {
             $versionPattern = '1.2.3-ciJ-BBB'
             $expectedVersion = "1.2.3-ci$julian-007"
 
@@ -1363,7 +1416,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when format is '#.#.#.#'" {
+        It "should apply the correct version when format is '#.#.#.#'" {
             $versionPattern = '#.#.#.#'
             $expectedVersion = '1.2.3.4'
 
@@ -1373,7 +1426,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#.0'" {
+        It "should apply the correct version when format is '#.#.#.0'" {
             $versionPattern = '#.#.#.0'
             $expectedVersion = '1.2.3.0'
 
@@ -1383,7 +1436,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0.0'" {
+        It "should apply the correct version when format is '#.#.0.0'" {
             $versionPattern = '#.#.0.0'
             $expectedVersion = '1.2.0.0'
 
@@ -1393,7 +1446,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0.0'" {
+        It "should apply the correct version when format is '#.0.0.0'" {
             $versionPattern = '#.0.0.0'
             $expectedVersion = '1.0.0.0'
 
@@ -1403,7 +1456,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#'" {
+        It "should apply the correct version when format is '#.#.#'" {
             $versionPattern = '#.#.#'
             $expectedVersion = '1.2.3'
 
@@ -1413,7 +1466,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0'" {
+        It "should apply the correct version when format is '#.#.0'" {
             $versionPattern = '#.#.0'
             $expectedVersion = '1.2.0'
 
@@ -1423,7 +1476,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0'" {
+        It "should apply the correct version when format is '#.0.0'" {
             $versionPattern = '#.0.0'
             $expectedVersion = '1.0.0'
 
@@ -1433,7 +1486,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#'" {
+        It "should apply the correct version when format is '#.#'" {
             $versionPattern = '#.#'
             $expectedVersion = '1.2'
 
@@ -1443,7 +1496,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0'" {
+        It "should apply the correct version when format is '#.0'" {
             $versionPattern = '#.0'
             $expectedVersion = '1.0'
 
@@ -1464,7 +1517,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when format is '#.#.###'" {
+        It "should apply the correct version when format is '#.#.###'" {
             $versionPattern = '#.#.###'
             $expectedVersion = '1.2.3-ci0008+14331.07'
 
@@ -1474,7 +1527,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.##'" {
+        It "should apply the correct version when format is '#.#.##'" {
             $versionPattern = '#.#.##'
             $expectedVersion = '1.2.3-ci0008'
 
@@ -1484,7 +1537,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#'" {
+        It "should apply the correct version when format is '#.#.#'" {
             $versionPattern = '#.#.#'
             $expectedVersion = '1.2.3'
 
@@ -1494,7 +1547,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0'" {
+        It "should apply the correct version when format is '#.#.0'" {
             $versionPattern = '#.#.0'
             $expectedVersion = '1.2.0'
 
@@ -1504,7 +1557,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0'" {
+        It "should apply the correct version when format is '#.0.0'" {
             $versionPattern = '#.0.0'
             $expectedVersion = '1.0.0'
 
@@ -1525,7 +1578,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It 'should return single placeholder as is' {
+        It 'should leave a single placeholder as is' {
             $versionPattern = '#.#.{0}'
             $expectedVersion = '4.3.{0}'
 
@@ -1535,7 +1588,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should return multiple placeholder as is' {
+        It 'should leave multiple placeholders as is' {
             $versionPattern = '#.{1}#.{0}'
             $expectedVersion = '4.{1}3.{0}'
 
@@ -1555,7 +1608,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when pattern is '1.2.J.B'" {
+        It "should apply the correct version when pattern is '1.2.J.B'" {
             $versionPattern = '1.2.J.B'
             $expectedVersion = "1.2.$julian.7"
 
@@ -1565,7 +1618,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.M.D.B'" {
+        It "should apply the correct version when pattern is 'YYYY.M.D.B'" {
             $versionPattern = 'YYYY.M.D.B'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -1576,7 +1629,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BB'" {
             $versionPattern = 'YYYY.MM.DD.BB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -1587,7 +1640,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is 'YYYY.MM.DD.BBB'" {
+        It "should apply the correct version when pattern is 'YYYY.MM.DD.BBB'" {
             $versionPattern = 'YYYY.MM.DD.BBB'
             $now = [DateTime]::Now
             $expectedVersion = "$($now.Year).$($now.Month).$($now.Day).7"
@@ -1598,7 +1651,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MMDD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MMDD.B'" {
             $versionPattern = '1.YY.MMDD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day.ToString("00")).7"
@@ -1609,7 +1662,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MD.B'" {
+        It "should apply the correct version when pattern is '1.YY.MD.B'" {
             $versionPattern = '1.YY.MD.B'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month)$($now.Day).7"
@@ -1620,7 +1673,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBB'" {
             $versionPattern = '1.YY.MM.DDBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)07"
@@ -1631,7 +1684,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.YY.MM.DDBBB'" {
+        It "should apply the correct version when pattern is '1.YY.MM.DDBBB'" {
             $versionPattern = '1.YY.MM.DDBBB'
             $now = [DateTime]::Now
             $expectedVersion = "1.$($now.ToString('yy')).$($now.Month).$($now.Day)007"
@@ -1642,7 +1695,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.B'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.B'" {
             $versionPattern = '1.2.3-ci+J.B'
             $expectedVersion = "1.2.3-ci+$julian.7"
 
@@ -1652,7 +1705,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.BB'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BB'" {
             $versionPattern = '1.2.3-ci+J.BB'
             $expectedVersion = "1.2.3-ci+$julian.07"
 
@@ -1662,7 +1715,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ci+J.BBB'" {
+        It "should apply the correct version when pattern is '1.2.3-ci+J.BBB'" {
             $versionPattern = '1.2.3-ci+J.BBB'
             $expectedVersion = "1.2.3-ci+$julian.007"
 
@@ -1672,7 +1725,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-B'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-B'" {
             $versionPattern = '1.2.3-ciJ-B'
             $expectedVersion = "1.2.3-ci$julian-7"
 
@@ -1682,7 +1735,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-BB'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BB'" {
             $versionPattern = '1.2.3-ciJ-BB'
             $expectedVersion = "1.2.3-ci$julian-07"
 
@@ -1692,7 +1745,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when pattern is '1.2.3-ciJ-BBB'" {
+        It "should apply the correct version when pattern is '1.2.3-ciJ-BBB'" {
             $versionPattern = '1.2.3-ciJ-BBB'
             $expectedVersion = "1.2.3-ci$julian-007"
 
@@ -1713,7 +1766,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when format is '#.#.#.#'" {
+        It "should apply the correct version when format is '#.#.#.#'" {
             $versionPattern = '#.#.#.#'
             $expectedVersion = '1.2.3.4'
 
@@ -1723,7 +1776,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#.0'" {
+        It "should apply the correct version when format is '#.#.#.0'" {
             $versionPattern = '#.#.#.0'
             $expectedVersion = '1.2.3.0'
 
@@ -1733,7 +1786,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0.0'" {
+        It "should apply the correct version when format is '#.#.0.0'" {
             $versionPattern = '#.#.0.0'
             $expectedVersion = '1.2.0.0'
 
@@ -1743,7 +1796,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0.0'" {
+        It "should apply the correct version when format is '#.0.0.0'" {
             $versionPattern = '#.0.0.0'
             $expectedVersion = '1.0.0.0'
 
@@ -1753,7 +1806,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#'" {
+        It "should apply the correct version when format is '#.#.#'" {
             $versionPattern = '#.#.#'
             $expectedVersion = '1.2.3'
 
@@ -1763,7 +1816,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0'" {
+        It "should apply the correct version when format is '#.#.0'" {
             $versionPattern = '#.#.0'
             $expectedVersion = '1.2.0'
 
@@ -1773,7 +1826,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0'" {
+        It "should apply the correct version when format is '#.0.0'" {
             $versionPattern = '#.0.0'
             $expectedVersion = '1.0.0'
 
@@ -1783,7 +1836,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#'" {
+        It "should apply the correct version when format is '#.#'" {
             $versionPattern = '#.#'
             $expectedVersion = '1.2'
 
@@ -1793,7 +1846,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0'" {
+        It "should apply the correct version when format is '#.0'" {
             $versionPattern = '#.0'
             $expectedVersion = '1.0'
 
@@ -1814,7 +1867,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It "should return correct version when format is '#.#.###'" {
+        It "should apply the correct version when format is '#.#.###'" {
             $versionPattern = '#.#.###'
             # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
             $expectedVersion = '1.2.3-ci0008-14331-07'
@@ -1825,7 +1878,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.##'" {
+        It "should apply the correct version when format is '#.#.##'" {
             $versionPattern = '#.#.##'
             $expectedVersion = '1.2.3-ci0008'
 
@@ -1835,7 +1888,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.#'" {
+        It "should apply the correct version when format is '#.#.#'" {
             $versionPattern = '#.#.#'
             $expectedVersion = '1.2.3'
 
@@ -1845,7 +1898,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.#.0'" {
+        It "should apply the correct version when format is '#.#.0'" {
             $versionPattern = '#.#.0'
             $expectedVersion = '1.2.0'
 
@@ -1855,7 +1908,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It "should return correct version when format is '#.0.0'" {
+        It "should apply the correct version when format is '#.0.0'" {
             $versionPattern = '#.0.0'
             $expectedVersion = '1.0.0'
 
@@ -1876,7 +1929,7 @@ Describe 'Update-Version' {
         $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
         $env:BUILD_BUILDNUMBER = $buildNumber
 
-        It 'should return single placeholder as is' {
+        It 'should leave a single placeholder as is' {
             $versionPattern = '#.#.{0}'
             $expectedVersion = '4.3.{0}'
 
@@ -1886,7 +1939,7 @@ Describe 'Update-Version' {
             $actualVersion | Should Be $expectedVersion
         }
 
-        It 'should return multiple placeholder as is' {
+        It 'should leave multiple placeholders as is' {
             $versionPattern = '#.{1}#.{0}'
             $expectedVersion = '4.{1}3.{0}'
 
