@@ -9,6 +9,7 @@
     - 1.0.0  11-11-2014  Initial version
     - 1.1.0  07-12-2014  Added package versioning to Update-Version
     - 2.0.0  28-08-2016  Update for task-based builds
+    - 2.1.0  25-05-2017  Change default format for .NET, when SemVer is provided, to '#.#.#.B'
 
 .PARAMETER  $AssemblyVersionFilePattern
     Specifies the pattern to use for finding source-files containing the version-attributes. Default is 'AssemblyInfo.*'.
@@ -17,15 +18,15 @@
 .PARAMETER  AssemblyVersionPattern
     Specifies the version, or pattern, for the assembly-version.
     Depending on the provided version (either through the Version or BuildNumber parameters)
-    the default is '#.#.#.#' (.NET) or '#.#.#.0' (SemVer).
+    the default is '#.#.#.#' (.NET) or '#.#.#.B' (SemVer).
 .PARAMETER  FileVersionPattern
     Specifies the version, or pattern, for the assembly-file-version.
     Depending on the provided version (either through the Version or BuildNumber parameters)
-    the default is '#.#.#.#' (.NET) or '#.#.#.0' (SemVer).
+    the default is '#.#.#.#' (.NET) or '#.#.#.B' (SemVer).
 .PARAMETER  $ProductVersionPattern
     Specifies the version, or pattern, for the assembly-informational-version.
     Depending on the provided version (either through the Version or BuildNumber parameters)
-    the default is '#.#.#.#' (.NET) or '#.#.#.0' (SemVer).
+    the default is '#.#.#.#' (.NET) or '#.#.###' (SemVer).
 .PARAMETER  PackageVersionPattern
     Specifies the version, or pattern, for the nuget-packages.
     Depending on the provided version (either through the Version or BuildNumber parameters)
@@ -287,12 +288,12 @@ function Update-Version {
     }
 
     # determine default version-patterns, based on the type of version used, for those that are not provided
-    # assembly-version & file-version do not support SemVer, so use #.#.#.0 pattern
+    # assembly-version & file-version do not support SemVer, so use #.#.#.B pattern
     if(-not $AssemblyVersionPattern) {
-        $AssemblyVersionPattern = $versionData.Type | ?: { $_ -eq "SemVer" } { "#.#.#.0" } { "#.#.#.#" }
+        $AssemblyVersionPattern = $versionData.Type | ?: { $_ -eq "SemVer" } { "#.#.#.B" } { "#.#.#.#" }
     }
     if(-not $FileVersionPattern) {
-        $FileVersionPattern = $versionData.Type | ?: { $_ -eq "SemVer" } { "#.#.#.0" } { "#.#.#.#" }
+        $FileVersionPattern = $versionData.Type | ?: { $_ -eq "SemVer" } { "#.#.#.B" } { "#.#.#.#" }
     }
     if(-not $ProductVersionPattern) {
         $ProductVersionPattern = $versionData.Type | ?: { $_ -eq "SemVer" } { "#.#.###" } { "#.#.#.#" }

@@ -521,16 +521,16 @@ Describe 'Update-Version' {
             ..\src\Update-Version.ps1
 
             $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
-            # assembly-version does not support SemVer, so the #.#.#.0 pattern is used
-            $actualVersion | Should Be '2.3.1.0'
+            # assembly-version does not support SemVer, so the #.#.#.B pattern is used
+            $actualVersion | Should Be '2.3.1.7'
         }
 
         It 'should apply this version to the file-version' {
             ..\src\Update-Version.ps1
 
             $actualVersion = Get-Version -Path $path -VersionType FileVersion
-            # assembly-version does not support SemVer, so the #.#.#.0 pattern is used
-            $actualVersion | Should Be '2.3.1.0'
+            # assembly-version does not support SemVer, so the #.#.#.B pattern is used
+            $actualVersion | Should Be '2.3.1.7'
         }
 
         It 'should apply this version to the product-version' {
@@ -546,6 +546,49 @@ Describe 'Update-Version' {
             $actualVersion = Get-PackageVersion -Path $nuspecPath
             # NuGet does not fully support SemVer, so '.' & '+' are replaced with '-'
             $actualVersion | Should Be '2.3.1-ci42-12345-07'
+        }
+    }
+
+    Context 'when version is in the build-number in SemVer v1 supported format' {
+        # NOTE: SemVer 1.0.0 only supports pre-release info (using -), no meta-data (using +)
+        $buildNumber = 'Test_2014-11-27_8.2.4-ci+0007'
+        $path = 'TestDrive:\AssemblyInfo.cs'
+        $nuspecPath = 'TestDrive:\package.nuspec'
+
+        Set-Content -Path $path -Value $AssemblyInfo_CS
+        Set-Content -Path $nuspecPath -Value $Package_Nuspec
+
+        $env:BUILD_SOURCESDIRECTORY = 'TestDrive:\'
+        $env:BUILD_BUILDNUMBER = $buildNumber
+
+        It 'should apply this version to the assembly-version' {
+            ..\src\Update-Version.ps1
+
+            $actualVersion = Get-Version -Path $path -VersionType AssemblyVersion
+            # assembly-version does not support SemVer, so the #.#.#.B pattern is used
+            $actualVersion | Should Be '8.2.4.7'
+        }
+
+        It 'should apply this version to the file-version' {
+            ..\src\Update-Version.ps1
+
+            $actualVersion = Get-Version -Path $path -VersionType FileVersion
+            # assembly-version does not support SemVer, so the #.#.#.B pattern is used
+            $actualVersion | Should Be '8.2.4.7'
+        }
+
+        It 'should apply this version to the product-version' {
+            ..\src\Update-Version.ps1
+
+            $actualVersion = Get-Version -Path $path -VersionType ProductVersion
+            $actualVersion | Should Be '8.2.4-ci+0007'
+        }
+
+        It 'should apply this version to the package-version' {
+            ..\src\Update-Version.ps1
+
+            $actualVersion = Get-PackageVersion -Path $nuspecPath
+            $actualVersion | Should Be '8.2.4-ci0007'
         }
     }
 
