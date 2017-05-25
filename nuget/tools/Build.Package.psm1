@@ -22,7 +22,7 @@ function Add-BuildScripts {
 		Author: Jeroen Swart
 		Versions:
 		- 1.0.0  11-11-2014  Initial version
-		- 2.0.0  12-03-2017  Updated for new scritps and changed the default folder-name from 'BuildScripts' to '_BuildScripts'
+		- 2.0.0  12-03-2017  Updated for new scripts and changed the default folder-name from 'BuildScripts' to '_BuildScripts'
 
     .PARAMETER  FolderName
         Defines the name of the solution-folder to which the build-scripts are added. Default is '_BuildScripts'.
